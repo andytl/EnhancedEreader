@@ -21,17 +21,13 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 		View rootView = inflater.inflate(R.layout.fragment_reader,
 				container, false);
 		moveCount = 0;
+		displayText(rootView);
 		return rootView;
 	}
 	
-	@Override
-	public void onStart() {
-		super.onStart();
-		displayText();
-	}
 	
-	private void displayText() {
-		ScrollView sv = (ScrollView) getView().findViewById(R.id.scroll_view);
+	private void displayText(View rootView) {
+		ScrollView sv = (ScrollView) rootView.findViewById(R.id.scroll_view);
 		sv.setOnTouchListener(this);
 		TextView tv = new TextView(getActivity());
 		String text = "";
