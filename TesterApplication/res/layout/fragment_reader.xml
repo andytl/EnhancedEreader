@@ -11,10 +11,12 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.testerapplication.ReaderActivity$PlaceholderFragment" >
 
+
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:id="@+id/content">
 	    <TextView
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
@@ -23,10 +25,15 @@
 	    <ScrollView
 	        android:layout_width="fill_parent"
 	        android:layout_height="wrap_content"
-	        android:id="@+id/scroll_view">
-	        
-	    </ScrollView>
+	        android:id="@+id/scroll_view"/>
     </LinearLayout>	
     
+    <TableLayout
+        android:id="@+id/overlay"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+		android:layout_height="match_parent"/>
+   
     
+  
 </RelativeLayout>
