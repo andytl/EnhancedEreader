@@ -1,6 +1,3 @@
-
-
-
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -10,7 +7,6 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.testerapplication.ReaderActivity$PlaceholderFragment" >
-
 
     <LinearLayout
         android:orientation="vertical"
@@ -29,10 +25,22 @@
     </LinearLayout>	
     
     <TableLayout
-        android:id="@+id/overlay"
+        android:id="@+id/color_overlay"
         android:orientation="vertical"
         android:layout_width="match_parent"
 		android:layout_height="match_parent"/>
+    
+    <TableLayout
+        android:id="@+id/blur_overlay"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+    
+    <LinearLayout
+        android:id="@+id/circle_overlay"
+        android:orientation = "vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
    
     
   

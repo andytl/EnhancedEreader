@@ -8,15 +8,22 @@ import android.view.MotionEvent;
 import android.view.MotionEvent.PointerCoords;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import com.example.testerapplication.display.BlurDrawable;
+import com.example.testerapplication.display.CircleView;
+
 public class ReaderFragment extends Fragment implements View.OnTouchListener {
 
 	private static final int GRADIENT_SIZE = 10;
 	private static final int FOCUS_SIZE = 100;
+	private long down = -1;
+	private long moveCount = 0;
+	
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -35,7 +42,8 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 		rootView.post(new Runnable() {
 			@Override
 			public void run() {
-				createOverlay(rootView);
+				createOverlay(rootView, R.id.color_overlay);
+				createOverlay(rootView, R.id.blur_overlay);
 			}
 		});
 	}
@@ -47,7 +55,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 		TextView tv = new TextView(getActivity());
 		String text = "";
 		for(int i = 0; i < 1000; i++) { 
-			text += i + "\n";
+			text += i + "XXXXXXXXXXX" + "\n";
 		}
 		tv.setText(text);
 		tv.setTextSize(20);
@@ -74,27 +82,43 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 	public boolean onTouch(View v, MotionEvent event) {
 		int id = v.getId();
 		int action = event.getAction();
+		PointerCoords pc0 = new PointerCoords();
+		event.getPointerCoords(0, pc0);
+		drawCircle((int)pc0.x, (int)pc0.y, 20);
 		if (id == R.id.scroll_view) {
-
+			if (action == MotionEvent.ACTION_DOWN) {
+				down = System.currentTimeMillis();
+			}
+			if (action == MotionEvent.ACTION_MOVE){
+				moveCount++;
+			}
 			int[] location = new int[2];
 			int[] locationRoot = new int[2];
 			v.getLocationInWindow(location);
 			getView().getLocationInWindow(locationRoot);
-			PointerCoords pc0 = new PointerCoords();
-			event.getPointerCoords(0, pc0);
 			colorScreen((int)pc0.x+(location[0]-locationRoot[0]), (int)pc0.y+(location[1]-locationRoot[1]));
-
+//			blurScreen((int)pc0.x+(location[0]-locationRoot[0]), (int)pc0.y+(location[1]-locationRoot[1]));
+			if (action == MotionEvent.ACTION_UP){
+				long up = System.currentTimeMillis();
+				if (moveCount < 5 && up - down > 2000) {
+					centerScreen((int)pc0.x, (int)pc0.y);
+					colorScreen((v.getRight() - v.getLeft())/2 + (location[0]-locationRoot[0]), (v.getBottom() - v.getTop())/2 + (location[1]-locationRoot[1]));
+				}
+				moveCount = 0;
+				down = -1;
+			}
+			
 		}
 		return false;
 	}
 	
-	private void createOverlay(View rootView) {
+	private void createOverlay(View rootView, int tableId) {
 		int top = rootView.getTop();
 		int bottom = rootView.getBottom();
 		int left = rootView.getLeft();
 		int right = rootView.getRight();
 		Context context = getActivity();
-		TableLayout table = (TableLayout)rootView.findViewById(R.id.overlay);
+		TableLayout table = (TableLayout)rootView.findViewById(tableId);
 		for (int i = 0; i < (bottom -top)/GRADIENT_SIZE; i++) {
 			TableRow tr = new TableRow(context);
 			tr.setLayoutParams(new TableRow.LayoutParams(right-left, GRADIENT_SIZE));
@@ -116,10 +140,50 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 		colorRange(lower, bottom, 0x000FF000, 0x44, 0x00);
 		colorRange(upper, lower, 0x00000000, 0x00, 0x00);
 	}
+	
+	public void blurScreen(int x, int y) {
+		View rootView = getView();
+		int top = rootView.getTop();
+		int bottom = rootView.getBottom();
+		int upper = Math.max(y - FOCUS_SIZE, 0);
+		int lower = Math.min(y + FOCUS_SIZE, bottom);
+		blurRange(top, upper);
+		blurRange(lower, bottom);
+		focusRange(upper, lower);
+	}
 
+	private void blurRange(int upper, int lower) {
+		View rootView = getView();
+		TableLayout color_table = (TableLayout) rootView.findViewById(R.id.color_overlay);
+		TableLayout blur_table = (TableLayout) rootView.findViewById(R.id.blur_overlay);
+		int rowSize = color_table.getChildAt(0).getHeight();
+		int upperRow = upper/rowSize;
+		int lowerRow = lower/rowSize;
+		for (int i = upperRow; i < lowerRow; i++) {
+			TableRow tr_color = (TableRow)color_table.getChildAt(i);
+			TableRow tr_blur = (TableRow)blur_table.getChildAt(i);
+			BlurDrawable bd = new BlurDrawable(tr_color, 10);
+			tr_blur.setBackground(bd);
+			
+		}
+	}
+	
+	private void focusRange(int upper, int lower) {
+		View rootView = getView();
+		TableLayout blur_table = (TableLayout) rootView.findViewById(R.id.blur_overlay);
+		int rowSize = blur_table.getChildAt(0).getHeight();
+		int upperRow = upper/rowSize;
+		int lowerRow = lower/rowSize;
+		for (int i = upperRow; i < lowerRow; i++) {
+			TableRow tr_blur = (TableRow)blur_table.getChildAt(i);
+			tr_blur.setBackgroundColor(0x00000000);
+			
+		}
+	}
+	
 	private void colorRange(int upper, int lower, int color, int alphaBottom, int alphaTop) {
 		View rootView = getView();
-		TableLayout table = (TableLayout) rootView.findViewById(R.id.overlay);
+		TableLayout table = (TableLayout) rootView.findViewById(R.id.color_overlay);
 		int rowSize = table.getChildAt(0).getHeight();
 		int upperRow = upper/rowSize;
 		int lowerRow = lower/rowSize;
@@ -135,8 +199,14 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 			}
 			alpha = alpha << 24;
 			TableRow tr = (TableRow)table.getChildAt(i);
-			System.out.println(Integer.toHexString(alpha));
 			tr.setBackgroundColor(color | alpha);	
 		}
+	}
+	
+	private void drawCircle(int x, int y, int radius) {
+		LinearLayout overlay = (LinearLayout)getView().findViewById(R.id.circle_overlay);
+		overlay.removeAllViews();
+		CircleView cv = new CircleView(getActivity(), x, y, radius);
+		overlay.addView(cv);
 	}
 }
