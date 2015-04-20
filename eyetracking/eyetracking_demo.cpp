@@ -22,20 +22,23 @@ cv::CascadeClassifier eye_cascade;
  * @param  tpl   Will be filled with the eye template, if detection success.
  * @return eyes
  */
-std::vector<cv::Rect> detectEyesInFace(cv::Mat& im, std::vector<cv::Mat>& tpls)
+bool detectEyesInFace(cv::Mat& im, std::vector<cv::Rect>& eyes, std::vector<cv::Mat>& tpls)
 {
 	const static int scale = 1;
-	std::vector<cv::Rect> eyes;
 
+	eyes.clear();
 	tpls.clear();
+
 	eye_cascade.detectMultiScale(im, eyes, 1.1, 2, 0|CV_HAAR_SCALE_IMAGE, cv::Size(20*scale,20*scale));
+
+	cv::groupRectangles(eyes, 0);
 
 	for (auto& eye : eyes)
 	{
 		tpls.push_back(im(eyes[0]));
 	}
 
-	return eyes;
+	return true;
 }
 
 /**
@@ -45,25 +48,29 @@ std::vector<cv::Rect> detectEyesInFace(cv::Mat& im, std::vector<cv::Mat>& tpls)
  * @param  tpl   Will be filled with the eye template, if detection success.
  * @return eyes
  */
-std::vector<cv::Rect> detectEyes(cv::Mat& im, std::vector<cv::Mat>& tpls)
+bool detectEyes(cv::Mat& im, std::vector<cv::Rect>& faces, std::vector<cv::Rect>& eyes, std::vector<cv::Mat>& tpls)
 {
 	const static int scale = 1;
-	std::vector<cv::Rect> faces, eyes;
-	face_cascade.detectMultiScale(im, faces, 1.1, 2, 0|CV_HAAR_SCALE_IMAGE, cv::Size(30*scale,30*scale));
 
+	faces.clear();
+	eyes.clear();
 	tpls.clear();
+
+	face_cascade.detectMultiScale(im, faces, 1.1, 2, 0|CV_HAAR_SCALE_IMAGE, cv::Size(30*scale,30*scale));
 
 	for (int i = 0; i < faces.size(); i++)
 	{
-		cv::Mat face = im(faces[i]);
+		auto half_face = faces[i];
+		half_face.height /= 2;
+		cv::Mat face = im(half_face);
 		std::vector<cv::Rect> these_eyes;
 		std::vector<cv::Mat> these_tpls;
 
-		these_eyes = detectEyesInFace(face, these_tpls);
+		detectEyesInFace(face, these_eyes, these_tpls);
 		
 		for (auto& eye : these_eyes)
 		{
-			eye += cv::Point(faces[i].x, faces[i].y);
+			eye += cv::Point(half_face.x, half_face.y);
 		}
 
 		eyes.insert(eyes.cend(), these_eyes.cbegin(), these_eyes.cend());
@@ -74,7 +81,7 @@ std::vector<cv::Rect> detectEyes(cv::Mat& im, std::vector<cv::Mat>& tpls)
 		tpls.push_back(im(eyes[0]));
 	}
 
-	return eyes;
+	return true;
 }
 
 /**
@@ -128,7 +135,9 @@ int main(int argc, char** argv)
 
 	cv::Mat frame;
 	std::vector<cv::Mat> eye_tpls;
-	std::vector<cv::Rect> eye_bbs;
+	std::vector<cv::Rect> face_bbs, eye_bbs;
+
+	int centered_Y = 0;
 
 	bool do_zoom = false;
 
@@ -152,7 +161,7 @@ int main(int argc, char** argv)
 		{
 			// Detection stage
 			// Try to detect the face and the eye of the user
-			eye_bbs = detectEyes(gray, eye_tpls);
+			detectEyes(gray, face_bbs, eye_bbs, eye_tpls);
 		}
 		else if (lastKey == 'l')
 		{
@@ -163,8 +172,9 @@ int main(int argc, char** argv)
 			large_rect.width *= 3;
 			large_rect.height *= 3;
 
+			std::vector<cv::Rect> eyes;
 			std::vector<cv::Mat> tpls;
-			auto eyes = detectEyesInFace(gray(large_rect), tpls);
+			detectEyesInFace(gray(large_rect), eyes, tpls);
 			eyes[0] += cv::Point(large_rect.x, large_rect.y);
 			eye_bbs[0] = eyes[0];
 			eye_tpls[0] = tpls[0];
@@ -186,6 +196,14 @@ int main(int argc, char** argv)
 			// Draw bounding rectangle for the eye
 			if (!do_zoom)
 			{
+				for (auto& face_bb : face_bbs)
+				{
+					cv::rectangle(frame, face_bb, CV_RGB(0,0,255));
+					auto tmp = face_bb;
+					tmp.height /= 2;
+					cv::rectangle(frame, tmp, CV_RGB(0,0,255));
+				}
+
 				for (auto& eye_bb : eye_bbs)
 				{
 					cv::rectangle(frame, eye_bb, CV_RGB(0,255,0));
@@ -197,11 +215,15 @@ int main(int argc, char** argv)
 				large_rect.width *= 3;
 				large_rect.height *= 3;
 				cv::rectangle(frame, large_rect, CV_RGB(255, 0, 0));
+
+				cv::putText(frame, std::to_string(centered_Y - eye_bbs[0].y), cv::Point(50, 50), 1, 2, CV_RGB(255, 0, 255));
 			}
 		}
 
 		if (lastKey == ' ')
 			do_zoom = !do_zoom;
+		else if (lastKey == 'c')
+			centered_Y = eye_bbs[0].y;
 
 		// Display video
 		if (eye_bbs.size() > 0 && eye_bbs[0].area() && do_zoom)
