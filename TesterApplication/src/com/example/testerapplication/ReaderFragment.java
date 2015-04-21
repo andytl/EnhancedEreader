@@ -20,10 +20,10 @@ import com.example.testerapplication.display.CircleView;
 public class ReaderFragment extends Fragment implements View.OnTouchListener {
 
 	private static final int GRADIENT_SIZE = 10;
-	private static final int FOCUS_SIZE = 100;
+	private static final int FOCUS_SIZE = 300;
 	
-	private static final double AVG_UPDATE_FACTOR = 0.8;
-	private static final double ERROR_UPDATE_FACTOR = 0.92;
+	private static final double AVG_UPDATE_FACTOR = 0.2;
+	private static final double ERROR_UPDATE_FACTOR = 0.8;
 	private static final double MAX_VALID_DX = 1000;
 	private static final double MAX_VALID_DY = 200;
 	
@@ -75,8 +75,12 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 		sv.setOnTouchListener(this);
 		TextView tv = new TextView(getActivity());
 		String text = "";
-		for(int i = 0; i < 1000; i++) { 
-			text += i + "XXXXXXXXXXX" + "\n";
+		for(int i = 0; i < 150; i++) {
+			text += i + "_";
+			for (int j = 0; j < 27; j++) {
+				text += j;
+			}
+			text +="\n";
 		}
 		tv.setText(text);
 		tv.setTextSize(20);
@@ -105,6 +109,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 		event.getPointerCoords(0, pc0);
 		drawCircle((int)pc0.x, (int)pc0.y, 30, true);
 		if (id == R.id.scroll_view) {
+//			if (action == MotionEvent.ACTION_DOWN)
 			newReadPosition(pc0.x, pc0.y);
 		}
 		return true;
@@ -134,7 +139,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 			}
 			outX = x;
 			outY = y;
-			if (outCount > 10) {
+			if (outCount > 30) {
 				avgX = outX;
 				avgY = outY;
 				validRate = 1;
@@ -163,10 +168,11 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 		if (validRate > 0.7) {
 			focusRange(top, bottom);
 			return;
-		} 
-		if (KEEP_TOP.equals(curMode)) {
-			colorScreen(bottom, center/2);
+		} else {
+			//TODO: figure out int / double stuff
+			colorScreen((int)avgX, (int)avgY);
 		}
+		
 	}
 	
 	private void updateScroll() {
@@ -177,7 +183,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 			if (center < avgY) {
 				sv.smoothScrollBy(0, center/6);
 				clearReadData();
-				waitCount = 6;
+				waitCount = 30;
 			}
 		} else if (KEEP_CENTER.equals(curMode)) {
 			
