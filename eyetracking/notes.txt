@@ -1,0 +1,6 @@
+http://www.diku.dk/~panic/eyegaze/node9.html
+https://duckduckgo.com/?q=eyetracker+github&ia=about
+https://duckduckgo.com/?q=opencv+find+center+of+eye
+http://www.answers.opencv.org/question/32688/finding-the-center-of-eye-pupil/
+http://stackoverflow.com/questions/5154282/dilate-erode-modify-kernel-option
+
