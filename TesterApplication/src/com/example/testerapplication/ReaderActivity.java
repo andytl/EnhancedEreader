@@ -13,6 +13,8 @@ import android.os.Build;
 
 public class ReaderActivity extends Activity {
 
+	
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
