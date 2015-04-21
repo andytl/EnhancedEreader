@@ -13,6 +13,13 @@ import android.os.Build;
 
 public class ReaderActivity extends Activity {
 
+	// Link in the JNI Lib
+	static {
+		System.loadLibrary("TesterApplication");
+	}
+	// Declare methods - See matching method in cpp file
+	native int foo();
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -21,6 +28,8 @@ public class ReaderActivity extends Activity {
 			getFragmentManager().beginTransaction()
 					.add(R.id.container, new ReaderFragment()).commit();
 		}
+		// Call JNI method
+		System.out.println("JNI Loaded, foo= " + foo());
 	}
 
 	@Override
