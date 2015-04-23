@@ -15,6 +15,17 @@
 cv::CascadeClassifier face_cascade;
 cv::CascadeClassifier eye_cascade;
 
+cv::Point click_pt;
+
+void MouseCallback(int event, int x, int y, int flags, void* userdata)
+{
+	if (event == cv::EVENT_LBUTTONDOWN)
+	{
+		click_pt.x = x;
+		click_pt.y = y;
+	}
+}
+
 /**
  * Function to detect eyes from an image.
  *
@@ -134,6 +145,9 @@ int main(int argc, char** argv)
 	cap.set(CV_CAP_PROP_FRAME_WIDTH, 320);
 	cap.set(CV_CAP_PROP_FRAME_HEIGHT, 240);*/
 
+	cv::namedWindow("video");
+	cv::setMouseCallback("video", MouseCallback);
+
 	cv::Mat frame;
 	std::vector<cv::Mat> eye_tpls;
 	std::vector<cv::Rect> face_bbs, eye_bbs;
@@ -142,6 +156,9 @@ int main(int argc, char** argv)
 	double eye_thresh = 60;
 
 	bool do_zoom = false;
+	bool do_dilate = false;
+	bool do_threshold = true;
+	bool do_gauss = false;
 
 	int lastKey = 0;
 	do
@@ -218,7 +235,7 @@ int main(int argc, char** argv)
 				large_rect.height *= 3;
 				cv::rectangle(frame, large_rect, CV_RGB(255, 0, 0));
 
-				cv::putText(frame, std::to_string(centered_Y - eye_bbs[0].y), cv::Point(50, 50), 1, 2, CV_RGB(255, 0, 255));
+				cv::putText(frame, std::to_string(centered_Y - eye_bbs[0].y), cv::Point(50, 50), 1, 1, CV_RGB(255, 0, 255));
 			}
 		}
 
@@ -226,6 +243,20 @@ int main(int argc, char** argv)
 			do_zoom = !do_zoom;
 		else if (lastKey == 'c')
 			centered_Y = eye_bbs[0].y;
+		else if (lastKey == 'd')
+		{
+			do_dilate = !do_dilate;
+			if (do_dilate)
+				do_gauss = false;
+		}
+		else if (lastKey == 'g')
+		{
+			do_gauss = !do_gauss;
+			if (do_gauss)
+				do_dilate = false;
+		}
+		else if (lastKey == 't')
+			do_threshold = !do_threshold;
 		else if (lastKey == '+')
 			eye_thresh += 1;
 		else if (lastKey == '-')
@@ -237,12 +268,55 @@ int main(int argc, char** argv)
 			static const double scale_factor = 4.0;
 			cv::Mat zoomed;
 			cv::resize(frame(eye_bbs[0]), zoomed, cv::Size(), scale_factor, scale_factor);
-			cv::cvtColor(zoomed, zoomed, CV_BGR2GRAY);
-			cv::threshold(zoomed, zoomed, eye_thresh, 255, cv::THRESH_BINARY);
+			if (do_threshold)
+			{
+				cv::cvtColor(zoomed, zoomed, CV_BGR2GRAY);
+				cv::threshold(zoomed, zoomed, eye_thresh, 255, cv::THRESH_BINARY);
+				if (do_dilate)
+				{
+					cv::dilate(zoomed, zoomed, cv::Mat(), cv::Point(-1, -1), 3);
+					cv::erode(zoomed, zoomed, cv::Mat(), cv::Point(-1, -1), 6);
+				} else if (do_gauss)
+				{
+					cv::GaussianBlur(zoomed, zoomed, cv::Size(9, 9), 2, 2);
+				}
+
+				cv::Mat canny_out;
+				std::vector<std::vector<cv::Point>> contours;
+				std::vector<cv::Vec4i> hierarchy;
+				cv::Canny(zoomed, canny_out, 100, 200);
+				cv::findContours(canny_out, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE);
+
+				cv::cvtColor(zoomed, zoomed, CV_GRAY2BGR);
+				for (int i = 0; i < contours.size(); i++)
+				{
+					cv::drawContours(zoomed, contours, i, CV_RGB(0, 0, 255), 3);
+					if (contours[i].size() > 2)
+					{
+						//cv::RotatedRect rr = cv::fitEllipse(contours[i]);
+						cv::RotatedRect rr = cv::minAreaRect(contours[i]);
+						if (click_pt.inside(rr.boundingRect())) {
+							cv::ellipse(zoomed, cv::fitEllipse(contours[i]), CV_RGB(255,0,255), 2);
+						}
+					}
+				}
+
+				cv::circle(zoomed, cv::Point(zoomed.cols/2,zoomed.rows/2), 1, CV_RGB(255,255,0), 3);
+				cv::circle(zoomed, click_pt, 1, CV_RGB(0,255,0), 3);
+				cv::putText(zoomed, std::to_string(click_pt.x) + ", " + std::to_string(click_pt.y), cv::Point(20, 60), 1, 1, CV_RGB(0,255,0));
+
+				cv::putText(zoomed, std::to_string(eye_thresh), cv::Point(20, 40), 1, 1, CV_RGB(255, 0, 255));
+				if (do_dilate)
+					cv::putText(zoomed, "dilate + erode", cv::Point(20, 20), 1, 1, CV_RGB(255, 0, 0));
+				else if (do_gauss)
+					cv::putText(zoomed, "gauss", cv::Point(20, 20), 1, 1, CV_RGB(255, 0, 0));
+			}
 			cv::imshow("video", zoomed);
 		}
 		else
+		{
 			cv::imshow("video", frame);
+		}
 	} while (lastKey != 'q');
 
 	return 0;
