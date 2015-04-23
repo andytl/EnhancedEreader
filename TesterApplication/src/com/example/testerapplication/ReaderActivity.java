@@ -1,35 +1,56 @@
 package com.example.testerapplication;
 
+import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.CameraBridgeViewBase;
+import org.opencv.android.LoaderCallbackInterface;
+import org.opencv.android.OpenCVLoader;
+
 import android.app.Activity;
-import android.app.ActionBar;
-import android.app.Fragment;
 import android.os.Bundle;
-import android.view.LayoutInflater;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.os.Build;
 
 public class ReaderActivity extends Activity {
 
-	// Link in the JNI Lib
-	static {
-		System.loadLibrary("TesterApplication");
-	}
-	// Declare methods - See matching method in cpp file
-	native int foo();
+    private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
+        @Override
+        public void onManagerConnected(int status) {
+            switch (status) {
+                case LoaderCallbackInterface.SUCCESS:
+                {
+                    Log.i("TesterApplication", "OpenCV loaded successfully");
+                    System.loadLibrary("TesterApplication"); 
+                    // Load native library after(!) OpenCV initialization
+                    NativeInterface tester = new NativeInterface();
+                    tester.doFoo();
+        			System.out.println("JNI Loaded, foo= " + tester.getFoo());
+                    
+                } break;
+                default:
+                {
+                    super.onManagerConnected(status);
+                } break;
+            }
+        }
+    };
+
+    @Override
+    protected void onResume() {
+    	super.onResume();
+		// Load Opencv
+		OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this, mLoaderCallback);
+    }
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		System.out.println("on create");
 		setContentView(R.layout.activity_reader);
 		if (savedInstanceState == null) {
 			getFragmentManager().beginTransaction()
 					.add(R.id.container, new ReaderFragment()).commit();
 		}
-		// Call JNI method
-		System.out.println("JNI Loaded, foo= " + foo());
 	}
 
 	@Override

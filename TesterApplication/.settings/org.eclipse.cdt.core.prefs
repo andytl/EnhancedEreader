@@ -1,0 +1,6 @@
+eclipse.preferences.version=1
+environment/project/com.android.toolchain.gcc.1904806468/OPENCV_PACKAGE_DIR/delimiter=\:
+environment/project/com.android.toolchain.gcc.1904806468/OPENCV_PACKAGE_DIR/operation=append
+environment/project/com.android.toolchain.gcc.1904806468/OPENCV_PACKAGE_DIR/value=/Users/andytl/git/OpenCV-android-sdk
+environment/project/com.android.toolchain.gcc.1904806468/append=true
+environment/project/com.android.toolchain.gcc.1904806468/appendContributed=true

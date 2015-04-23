@@ -27,6 +27,9 @@
 								</outputEntries>
 							</builder>
 							<tool id="com.android.gcc.compiler.1233248635" name="Android GCC Compiler" superClass="com.android.gcc.compiler">
+								<option id="com.android.gcc.option.includePath.555018040" superClass="com.android.gcc.option.includePath" valueType="includePath">
+									<listOptionValue builtIn="false" value="/Users/andytl/git/OpenCV-android-sdk/sdk/native/jni/include"/>
+								</option>
 								<inputType id="com.android.gcc.inputType.1091572385" superClass="com.android.gcc.inputType"/>
 							</tool>
 						</toolChain>
