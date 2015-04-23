@@ -12,12 +12,13 @@ public class CircleView extends View {
 	int radius;
 	Paint paint;
 	
-	public CircleView(Context context, int x, int y, int radius) {
+	public CircleView(Context context, int x, int y, int radius, int color) {
 		super(context);
 		this.x = x;
 		this.y = y;
 		this.radius = radius;
 		this.paint = new Paint();
+		paint.setColor(color);
 	}
 
 	@Override
@@ -26,6 +27,7 @@ public class CircleView extends View {
 		canvas.drawCircle(x, y, radius, paint);
 		
 	}
+	
 	
 }
 

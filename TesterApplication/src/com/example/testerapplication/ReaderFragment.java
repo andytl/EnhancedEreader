@@ -8,7 +8,7 @@ import android.view.MotionEvent;
 import android.view.MotionEvent.PointerCoords;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -20,9 +20,31 @@ import com.example.testerapplication.display.CircleView;
 public class ReaderFragment extends Fragment implements View.OnTouchListener {
 
 	private static final int GRADIENT_SIZE = 10;
-	private static final int FOCUS_SIZE = 100;
+	private static final int FOCUS_SIZE = 300;
+	
+	private static final double AVG_UPDATE_FACTOR = 0.2;
+	private static final double ERROR_UPDATE_FACTOR = 0.8;
+	private static final double MAX_VALID_DX = 1000;
+	private static final double MAX_VALID_DY = 200;
+	
+	public static final String KEEP_TOP = "TOP";
+	public static final String KEEP_CENTER = "CENTER";
+	public static final String FULL_PAGE = "FULL";
+	
+	public static String curMode = KEEP_TOP;
+	
 	private long down = -1;
 	private long moveCount = 0;
+	
+	private double avgX = -1;
+	private double avgY = -1;
+	private double curX = -1;
+	private double curY = -1;
+	private double outX = -1;
+	private double outY = -1;
+	private int outCount = 0;
+	private double validRate = 1;
+	private int waitCount = 0;
 	
 	
 	@Override
@@ -47,23 +69,24 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 			}
 		});
 	}
-	
-	
+		
 	private void displayText(View rootView) {
 		ScrollView sv = (ScrollView) rootView.findViewById(R.id.scroll_view);
 		sv.setOnTouchListener(this);
 		TextView tv = new TextView(getActivity());
 		String text = "";
-		for(int i = 0; i < 1000; i++) { 
-			text += i + "XXXXXXXXXXX" + "\n";
+		for(int i = 0; i < 150; i++) {
+			text += i + "_";
+			for (int j = 0; j < 27; j++) {
+				text += j;
+			}
+			text +="\n";
 		}
 		tv.setText(text);
 		tv.setTextSize(20);
 		sv.addView(tv);
 	}
 	
-
-
 	public void centerScreen(int x, int y) {
 		ScrollView sv = (ScrollView) getView().findViewById(R.id.scroll_view);
 		int left = 	sv.getLeft();
@@ -84,32 +107,112 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 		int action = event.getAction();
 		PointerCoords pc0 = new PointerCoords();
 		event.getPointerCoords(0, pc0);
-		drawCircle((int)pc0.x, (int)pc0.y, 20);
+		drawCircle((int)pc0.x, (int)pc0.y, 30, true);
 		if (id == R.id.scroll_view) {
-			if (action == MotionEvent.ACTION_DOWN) {
-				down = System.currentTimeMillis();
+//			if (action == MotionEvent.ACTION_DOWN)
+			newReadPosition(pc0.x, pc0.y);
+		}
+		return true;
+	}
+	
+	
+
+	
+	
+	private void newReadPosition(double x, double y) {
+		if (waitCount > 0) {
+			//recently scrolled. want to wait for the eys to adjust
+			waitCount--;
+			return;
+		}
+		
+		// Check if first read point. Call has side effects!
+		if (!initialize(x, y)) {
+			return;
+		}
+		// check if point is too far away from average read position
+		if (Math.abs(x-avgX) > MAX_VALID_DX || Math.abs(y-avgY) > MAX_VALID_DY) {
+			if (Math.abs(outX-x) < MAX_VALID_DX && Math.abs(y-outY) < MAX_VALID_DY) {
+				outCount++;
+			} else {
+				outCount = 0;
 			}
-			if (action == MotionEvent.ACTION_MOVE){
-				moveCount++;
+			outX = x;
+			outY = y;
+			if (outCount > 30) {
+				avgX = outX;
+				avgY = outY;
+				validRate = 1;
+			} else {
+				validRate = validRate * ERROR_UPDATE_FACTOR;
 			}
-			int[] location = new int[2];
-			int[] locationRoot = new int[2];
-			v.getLocationInWindow(location);
-			getView().getLocationInWindow(locationRoot);
-			colorScreen((int)pc0.x+(location[0]-locationRoot[0]), (int)pc0.y+(location[1]-locationRoot[1]));
-//			blurScreen((int)pc0.x+(location[0]-locationRoot[0]), (int)pc0.y+(location[1]-locationRoot[1]));
-			if (action == MotionEvent.ACTION_UP){
-				long up = System.currentTimeMillis();
-				if (moveCount < 5 && up - down > 2000) {
-					centerScreen((int)pc0.x, (int)pc0.y);
-					colorScreen((v.getRight() - v.getLeft())/2 + (location[0]-locationRoot[0]), (v.getBottom() - v.getTop())/2 + (location[1]-locationRoot[1]));
-				}
-				moveCount = 0;
-				down = -1;
+		} else {
+			validRate = validRate * ERROR_UPDATE_FACTOR + (1-ERROR_UPDATE_FACTOR);
+			avgX = x * AVG_UPDATE_FACTOR + (1-AVG_UPDATE_FACTOR) * avgX;
+			avgY = y * AVG_UPDATE_FACTOR + (1-AVG_UPDATE_FACTOR) * avgY;
+		}
+		//TODO: figure out double vs int
+		drawCircle((int)avgX, (int)avgY, 20, 0xFFFF0000, false);
+		updateScroll();
+		updateBlur();
+		System.out.println("ValidRate: " + validRate);
+
+	}
+	
+	private void updateBlur() {
+		System.out.println("udpateBlur");
+		View rootView = getView();
+		int top = rootView.getTop();
+		int bottom = rootView.getBottom();
+		int center = (top + bottom)/2;
+		if (validRate > 0.7) {
+			focusRange(top, bottom);
+			return;
+		} else {
+			//TODO: figure out int / double stuff
+			colorScreen((int)avgX, (int)avgY);
+		}
+		
+	}
+	
+	private void updateScroll() {
+		ScrollView sv = (ScrollView)getView().findViewById(R.id.scroll_view);
+		if (KEEP_TOP.equals(curMode)) {
+			int center = (sv.getBottom() + sv.getTop())/2;
+			System.out.println("Center: " + center + "\tAvg: " + avgY);
+			if (center < avgY) {
+				sv.smoothScrollBy(0, center/6);
+				clearReadData();
+				waitCount = 30;
 			}
+		} else if (KEEP_CENTER.equals(curMode)) {
+			
+		} else if (FULL_PAGE.equals(curMode)) {
 			
 		}
-		return false;
+	}
+	
+	private void clearReadData() {
+		avgX = -1;
+		avgY = -1;
+		curX = -1;
+		curY = -1;
+		outX = -1;
+		outY = -1;
+		outCount = 0;
+	}
+	
+	// if uninitialized, uses x, y as initial values. Returns false if uninitialized when called
+	private boolean initialize(double x, double y) {
+		if (curX == -1 || curY == -1 || avgX == -1 || avgY == -1) {
+			curX = x;
+			avgX = x;
+			curY = y;
+			avgY = y;
+			validRate = 1;
+			return false;
+		}
+		return true;
 	}
 	
 	private void createOverlay(View rootView, int tableId) {
@@ -170,7 +273,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 	
 	private void focusRange(int upper, int lower) {
 		View rootView = getView();
-		TableLayout blur_table = (TableLayout) rootView.findViewById(R.id.blur_overlay);
+		TableLayout blur_table = (TableLayout) rootView.findViewById(R.id.color_overlay);
 		int rowSize = blur_table.getChildAt(0).getHeight();
 		int upperRow = upper/rowSize;
 		int lowerRow = lower/rowSize;
@@ -203,10 +306,57 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 		}
 	}
 	
-	private void drawCircle(int x, int y, int radius) {
-		LinearLayout overlay = (LinearLayout)getView().findViewById(R.id.circle_overlay);
-		overlay.removeAllViews();
-		CircleView cv = new CircleView(getActivity(), x, y, radius);
+	private void drawCircle(int x, int y, int radius, boolean clearAll) {
+		drawCircle(x, y, radius, 0x88000000, clearAll);
+	}
+	
+	private void drawCircle(int x, int y, int radius, int color, boolean clearAll) {
+		RelativeLayout overlay = (RelativeLayout)getView().findViewById(R.id.circle_overlay);
+		if (clearAll) {
+			overlay.removeAllViews();
+		}
+		CircleView cv = new CircleView(getActivity(), x, y, radius, color);
 		overlay.addView(cv);
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+//	
+//	public boolean onTouch(View v, MotionEvent event) {
+//		int id = v.getId();
+//		int action = event.getAction();
+//		PointerCoords pc0 = new PointerCoords();
+//		event.getPointerCoords(0, pc0);
+//		drawCircle((int)pc0.x, (int)pc0.y, 20);
+//		if (id == R.id.scroll_view) {
+//			if (action == MotionEvent.ACTION_DOWN) {
+//				down = System.currentTimeMillis();
+//			}
+//			if (action == MotionEvent.ACTION_MOVE){
+//				moveCount++;
+//			}
+//			int[] location = new int[2];
+//			int[] locationRoot = new int[2];
+//			v.getLocationInWindow(location);
+//			getView().getLocationInWindow(locationRoot);
+//			colorScreen((int)pc0.x+(location[0]-locationRoot[0]), (int)pc0.y+(location[1]-locationRoot[1]));
+//			if (action == MotionEvent.ACTION_UP){
+//				long up = System.currentTimeMillis();
+//				if (moveCount < 5 && up - down > 2000) {
+//					centerScreen((int)pc0.x, (int)pc0.y);
+//					colorScreen((v.getRight() - v.getLeft())/2 + (location[0]-locationRoot[0]), (v.getBottom() - v.getTop())/2 + (location[1]-locationRoot[1]));
+//				}
+//				moveCount = 0;
+//				down = -1;
+//			}
+//			
+//		}
+//		return false;
+//	}
 }

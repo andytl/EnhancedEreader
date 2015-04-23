@@ -119,8 +119,9 @@ int main(int argc, char** argv)
 	// Load the cascade classifiers
 	// Make sure you point the XML files to the right path, or 
 	// just copy the files from [OPENCV_DIR]/data/haarcascades directory
-	face_cascade.load("haarcascade_frontalface_alt2.xml");
-	eye_cascade.load("haarcascade_eye.xml");
+	face_cascade.load("haarcascades/haarcascade_frontalface_alt2.xml");
+	//eye_cascade.load("haarcascades/haarcascade_eye_tree_eyeglasses.xml");
+	eye_cascade.load("haarcascades/haarcascade_mcs_lefteye.xml");
 
 	// Open webcam
 	cv::VideoCapture cap(0);
@@ -138,6 +139,7 @@ int main(int argc, char** argv)
 	std::vector<cv::Rect> face_bbs, eye_bbs;
 
 	int centered_Y = 0;
+	double eye_thresh = 60;
 
 	bool do_zoom = false;
 
@@ -224,6 +226,10 @@ int main(int argc, char** argv)
 			do_zoom = !do_zoom;
 		else if (lastKey == 'c')
 			centered_Y = eye_bbs[0].y;
+		else if (lastKey == '+')
+			eye_thresh += 1;
+		else if (lastKey == '-')
+			eye_thresh -= 1;
 
 		// Display video
 		if (eye_bbs.size() > 0 && eye_bbs[0].area() && do_zoom)
@@ -231,6 +237,8 @@ int main(int argc, char** argv)
 			static const double scale_factor = 4.0;
 			cv::Mat zoomed;
 			cv::resize(frame(eye_bbs[0]), zoomed, cv::Size(), scale_factor, scale_factor);
+			cv::cvtColor(zoomed, zoomed, CV_BGR2GRAY);
+			cv::threshold(zoomed, zoomed, eye_thresh, 255, cv::THRESH_BINARY);
 			cv::imshow("video", zoomed);
 		}
 		else

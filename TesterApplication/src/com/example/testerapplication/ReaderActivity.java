@@ -13,34 +13,34 @@ import android.view.MenuItem;
 
 public class ReaderActivity extends Activity {
 
-    private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
-        @Override
-        public void onManagerConnected(int status) {
-            switch (status) {
-                case LoaderCallbackInterface.SUCCESS:
-                {
-                    Log.i("TesterApplication", "OpenCV loaded successfully");
-                    System.loadLibrary("TesterApplication"); 
-                    // Load native library after(!) OpenCV initialization
-                    NativeInterface tester = new NativeInterface();
-                    tester.doFoo();
-        			System.out.println("JNI Loaded, foo= " + tester.getFoo());
-                    
-                } break;
-                default:
-                {
-                    super.onManagerConnected(status);
-                } break;
-            }
-        }
-    };
+		private BaseLoaderCallback	mLoaderCallback = new BaseLoaderCallback(this) {
+				@Override
+				public void onManagerConnected(int status) {
+						switch (status) {
+								case LoaderCallbackInterface.SUCCESS:
+								{
+										Log.i("TesterApplication", "OpenCV loaded successfully");
+										System.loadLibrary("TesterApplication"); 
+										// Load native library after(!) OpenCV initialization
+										NativeInterface tester = new NativeInterface();
+										tester.doFoo();
+										System.out.println("JNI Loaded, foo= " + tester.getFoo());
+										
+								} break;
+								default:
+								{
+										super.onManagerConnected(status);
+								} break;
+						}
+				}
+		};
 
-    @Override
-    protected void onResume() {
-    	super.onResume();
+		@Override
+		protected void onResume() {
+			super.onResume();
 		// Load Opencv
 		OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this, mLoaderCallback);
-    }
+		}
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
