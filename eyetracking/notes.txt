@@ -4,3 +4,6 @@ https://duckduckgo.com/?q=opencv+find+center+of+eye
 http://www.answers.opencv.org/question/32688/finding-the-center-of-eye-pupil/
 http://stackoverflow.com/questions/5154282/dilate-erode-modify-kernel-option
 
+
+http://openscholar.cs.umass.edu/mlds/files/mobisys14-ishadow.pdf
+http://cs.txstate.edu/~ok11/papers_published/2010_CHI_Se_Ko.pdf
