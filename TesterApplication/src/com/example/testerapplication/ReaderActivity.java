@@ -13,6 +13,10 @@ import android.os.Build;
 
 public class ReaderActivity extends Activity {
 
+	public static final String WEB_MODE = "WEB_MODE";
+	public static final String SCROLL_MODE = "SCROLL_MODE";
+	public static final String CAMERA_MODE = "CAMERA_MODE";
+	public static String CUR_MODE = SCROLL_MODE;
 	
 	
 	@Override
@@ -20,11 +24,18 @@ public class ReaderActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_reader);
 		if (savedInstanceState == null) {
-			getFragmentManager().beginTransaction()
-					.add(R.id.container, new ReaderFragment()).commit();
+			if (CUR_MODE.equals(SCROLL_MODE)) {
+				getFragmentManager().beginTransaction()
+						.add(R.id.container, new ReaderFragment()).commit();
+			} else if (CUR_MODE.equals(CAMERA_MODE)) {
+				//TODO: camera view
+			} else if (CUR_MODE.equals(WEB_MODE)) {
+				getFragmentManager().beginTransaction()
+					.add(R.id.container,  new WebFragment()).commit();
+			}
 		}
 	}
-
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.

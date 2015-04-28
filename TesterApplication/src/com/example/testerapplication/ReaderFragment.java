@@ -1,5 +1,6 @@
 package com.example.testerapplication;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
@@ -46,6 +47,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 	private double validRate = 1;
 	private int waitCount = 0;
 	
+	private ReadingMonitor mMonitor;
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -55,6 +57,12 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 				container, false);
 		displayText(rootView);
 		return rootView;
+	}
+	
+	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		mMonitor = new ReadingMonitor(R.id.scroll_view, R.id.circle_overlay, R.id.color_overlay, activity);
 	}
 
 	@Override
@@ -107,16 +115,13 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 		int action = event.getAction();
 		PointerCoords pc0 = new PointerCoords();
 		event.getPointerCoords(0, pc0);
-		drawCircle((int)pc0.x, (int)pc0.y, 30, true);
+//		drawCircle((int)pc0.x, (int)pc0.y, 30, true);
 		if (id == R.id.scroll_view) {
 //			if (action == MotionEvent.ACTION_DOWN)
-			newReadPosition(pc0.x, pc0.y);
+			mMonitor.newReadPosition(getView(), pc0.x, pc0.y);
 		}
 		return true;
 	}
-	
-	
-
 	
 	
 	private void newReadPosition(double x, double y) {
@@ -220,6 +225,11 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 		int bottom = rootView.getBottom();
 		int left = rootView.getLeft();
 		int right = rootView.getRight();
+		System.out.println("Overlay dims:");
+		System.out.println("\tleft: \t" + left );
+		System.out.println("\tright: \t" + right );
+		System.out.println("\ttop: \t" + top );
+		System.out.println("\tbottom: \t" + bottom );
 		Context context = getActivity();
 		TableLayout table = (TableLayout)rootView.findViewById(tableId);
 		for (int i = 0; i < (bottom -top)/GRADIENT_SIZE; i++) {
