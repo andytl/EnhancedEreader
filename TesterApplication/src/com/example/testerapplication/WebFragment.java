@@ -1,5 +1,7 @@
 package com.example.testerapplication;
 
+import org.opencv.android.CameraBridgeViewBase;
+
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
@@ -33,6 +35,9 @@ public class WebFragment extends Fragment implements OnTouchListener {
 		View rootView = inflater.inflate(R.layout.web_reader,
 				container, false);
 		rootView.findViewById(R.id.web_view).setOnTouchListener(this);
+		ReaderActivity ra = (ReaderActivity)getActivity();
+		ra.mOpenCvCameraView = (CameraBridgeViewBase) rootView.findViewById(R.id.web_camera_view);
+		ra.mOpenCvCameraView.setCvCameraViewListener(ra);
 		return rootView;
 	}
 	

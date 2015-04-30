@@ -4,6 +4,12 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
     
+      <org.opencv.android.JavaCameraView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:alpha="0"
+        android:id="@+id/web_camera_view" />
+    
 	<WebView
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"

@@ -1,9 +1,9 @@
 package com.example.testerapplication;
 
 import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
-import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
@@ -28,7 +28,7 @@ public class ReaderActivity extends Activity implements CvCameraViewListener2 {
 	/**********      camera stuff      ***************************/
 	private Mat                    mRgba;
 	private Mat                    mGray;
-    private CameraBridgeViewBase   mOpenCvCameraView;
+    public CameraBridgeViewBase   mOpenCvCameraView = null;
     /***********************************************************/
 
 	private BaseLoaderCallback	mLoaderCallback = new BaseLoaderCallback(this) {
@@ -43,7 +43,10 @@ public class ReaderActivity extends Activity implements CvCameraViewListener2 {
 									NativeInterface tester = new NativeInterface();
 									tester.doFoo();
 									System.out.println("JNI Loaded, foo= " + tester.getFoo());
-				                    mOpenCvCameraView.enableView();
+									if (mOpenCvCameraView != null) {
+										mOpenCvCameraView.enableView();
+									}
+
 							} break;
 							default:
 							{
@@ -74,6 +77,7 @@ public class ReaderActivity extends Activity implements CvCameraViewListener2 {
 		super.onCreate(savedInstanceState);
 		System.out.println("on create");
 		setContentView(R.layout.activity_reader);
+		
 		if (savedInstanceState == null) {
 			FragmentManager fm = getFragmentManager();
 			if (CUR_MODE.equals(SCROLL_MODE)) {
@@ -83,8 +87,9 @@ public class ReaderActivity extends Activity implements CvCameraViewListener2 {
 			} else if (CUR_MODE.equals(CAMERA_MODE)) {
 				//TODO: camera view
 				setContentView(R.layout.camera_layout);
-		        mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.fd_activity_surface_view);
-		        mOpenCvCameraView.setCvCameraViewListener(this);
+				mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.fd_activity_surface_view);
+			    mOpenCvCameraView.setCvCameraViewListener(this);
+		      
 			} else if (CUR_MODE.equals(WEB_MODE)) {
 				getFragmentManager().beginTransaction()
 					.add(R.id.container,  new WebFragment())
@@ -126,6 +131,8 @@ public class ReaderActivity extends Activity implements CvCameraViewListener2 {
 
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
+		System.out.println(inputFrame.hashCode());
+		new CVProcessingThread(inputFrame.gray()).start();
 		return inputFrame.rgba();
 	}
 }
