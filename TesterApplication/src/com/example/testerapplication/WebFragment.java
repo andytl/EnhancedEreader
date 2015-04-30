@@ -1,6 +1,9 @@
 package com.example.testerapplication;
 
 import org.opencv.android.CameraBridgeViewBase;
+import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
+import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
+import org.opencv.core.Mat;
 
 import android.app.Activity;
 import android.app.Fragment;
@@ -8,19 +11,20 @@ import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.MotionEvent.PointerCoords;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
-import android.view.MotionEvent.PointerCoords;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.TableLayout;
-import android.widget.TableRow;
-import android.widget.TextView;
 
-public class WebFragment extends Fragment implements OnTouchListener {
+public class WebFragment extends Fragment implements OnTouchListener, CvCameraViewListener2, NewReadCallback{
 
 	private ReadingMonitor mMonitor;
+	private Mat                    mRgba;
+	private Mat                    mGray;
+    public CameraBridgeViewBase   mOpenCvCameraView = null;
+	
 	
 	@Override
 	public void onAttach(Activity activity) {
@@ -36,8 +40,9 @@ public class WebFragment extends Fragment implements OnTouchListener {
 				container, false);
 		rootView.findViewById(R.id.web_view).setOnTouchListener(this);
 		ReaderActivity ra = (ReaderActivity)getActivity();
-		ra.mOpenCvCameraView = (CameraBridgeViewBase) rootView.findViewById(R.id.web_camera_view);
-		ra.mOpenCvCameraView.setCvCameraViewListener(ra);
+		mOpenCvCameraView = (CameraBridgeViewBase) rootView.findViewById(R.id.web_camera_view);
+		mOpenCvCameraView.setCvCameraViewListener(this);
+		
 		return rootView;
 	}
 	
@@ -57,7 +62,15 @@ public class WebFragment extends Fragment implements OnTouchListener {
 //				createOverlay(rootView, R.id.web_color_overlay);
 			}
 		});
+		if (((ReaderActivity)getActivity()).connected) {
+			enableCameraView();
+		}
+	}
 	
+	public void enableCameraView() {
+		if (mOpenCvCameraView != null) {
+			mOpenCvCameraView.enableView();
+		}
 	}
 	
 //	private void createOverlay(View rootView, int tableId) {
@@ -83,6 +96,9 @@ public class WebFragment extends Fragment implements OnTouchListener {
 //		}
 //	}
 	
+	public void newReadPosition(double x, double y) {
+		mMonitor.newReadPosition(getView(), x, y);
+	}
 	
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
@@ -92,5 +108,26 @@ public class WebFragment extends Fragment implements OnTouchListener {
 		event.getPointerCoords(0, pc0);
 		mMonitor.newReadPosition(getView(), pc0.x, pc0.y);
 		return true;
+	}
+
+	@Override
+	public void onCameraViewStarted(int width, int height) {
+	    mGray = new Mat();
+        mRgba = new Mat();		
+	}
+
+	@Override
+	public void onCameraViewStopped() {
+		mGray.release();
+		mRgba.release();		
+	}
+
+	@Override
+	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
+		System.out.println(inputFrame.hashCode());
+		View rootView = getView();
+		new CVProcessingThread(inputFrame.gray(), (ReaderActivity)getActivity(), this,  
+				rootView.getTop(), rootView.getBottom(), rootView.getLeft(), rootView.getRight()).start();
+		return inputFrame.rgba();
 	}
 }
