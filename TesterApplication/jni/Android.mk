@@ -6,6 +6,6 @@ include $(CLEAR_VARS)
 include $(OPENCV_PACKAGE_DIR)/sdk/native/jni/OpenCV.mk
 
 LOCAL_MODULE    := TesterApplication
-LOCAL_SRC_FILES := TesterApplication.cpp
+LOCAL_SRC_FILES := TesterApplication.cpp eyetracking_demo.cpp
 
 include $(BUILD_SHARED_LIBRARY)
