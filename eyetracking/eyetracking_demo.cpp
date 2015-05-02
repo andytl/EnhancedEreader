@@ -9,22 +9,100 @@
  * the subsequent template matching for tracking the eye.
  */
 #include <iostream>
+#include <iomanip>
 
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/objdetect/objdetect.hpp>
 
+#include <doublefann.h>
+#include <fann_cpp.h>
+
 cv::CascadeClassifier face_cascade;
 cv::CascadeClassifier eye_cascade;
 
+FANN::neural_net net;
+
 cv::Point click_pt;
+cv::Point2d click_data;
+bool bdown = false;
+
+cv::Mat eye_data;
+
+const double pixel_scale = 8.0;
+const cv::Size eye_size = cv::Size(36, 26);
+const unsigned burst = 8;
+
+unsigned bursti = 0;
+
+// Callback function that simply prints the information to cout
+int print_callback(FANN::neural_net &net, FANN::training_data &train,
+    unsigned int max_epochs, unsigned int epochs_between_reports,
+    float desired_error, unsigned int epochs, void *user_data)
+{
+    std::cout << "Epochs     " << std::setw(8) << epochs << ". "
+         << "Current Error: " << std::left << net.get_MSE() << std::right << std::endl;
+    return 0;
+}
+
+void update_net() {
+	static unsigned epoch = 0;
+	if (epoch >= 9 * burst)
+		return;
+	if (bursti >= burst)
+		return;
+	std::cout << bursti << std::endl;
+
+	static double **in_data = new double*[9 * burst];
+	static double **out_data = new double*[9 * burst];
+
+	double *in = new double[eye_size.area() / 4];
+	for (unsigned i = 0; i < eye_size.area() / 4; i++) {
+		in[i] = (eye_data.data[i] / 128.) - 1.;
+	}
+	double *out = new double[2];
+	out[0] = click_data.x;
+	out[1] = click_data.y;
+
+	in_data[epoch] = in;
+	out_data[epoch] = out;
+	epoch++;
+	bursti++;
+
+	if (epoch == 9 * burst) {
+		const float desired_error = 0.001f;
+		const unsigned int max_iterations = 300000;
+		const unsigned int iterations_between_reports = 1000;
+
+		FANN::training_data data;
+		net.set_callback(print_callback, NULL);
+		data.set_train_data(9 * burst, eye_size.area() / 4, in_data, 2, out_data);
+		net.train_on_data(data, max_iterations, iterations_between_reports, desired_error);
+	}
+}
 
 void MouseCallback(int event, int x, int y, int flags, void* userdata)
 {
-	if (event == cv::EVENT_LBUTTONDOWN)
+	if (event == cv::EVENT_MOUSEMOVE || event == cv::EVENT_LBUTTONDOWN || event == cv::EVENT_LBUTTONDBLCLK || bdown)
 	{
 		click_pt.x = x;
 		click_pt.y = y;
+
+		click_data = click_pt;
+		click_data.x /= pixel_scale;
+		click_data.x /= (eye_size.width / 2.0);
+		click_data.x -= 1.0;
+		click_data.y /= pixel_scale;
+		click_data.y /= (eye_size.height / 2.0);
+		click_data.y -= 1.0;
+
+		if ((event == cv::EVENT_LBUTTONDOWN || bdown) && bursti < burst) {
+			bdown = true;
+		}
+	}
+	if (event == cv::EVENT_LBUTTONUP) {
+		bdown = false;
+		bursti = 0;
 	}
 }
 
@@ -43,12 +121,13 @@ bool detectEyesInFace(cv::Mat& im, std::vector<cv::Rect>& eyes, std::vector<cv::
 	tpls.clear();
 
 	eye_cascade.detectMultiScale(im, eyes, 1.1, 2, 0|CV_HAAR_SCALE_IMAGE, cv::Size(20*scale,20*scale));
+	//eye_cascade.detectMultiScale(im, eyes, 1.1, 2, 0|CV_HAAR_SCALE_IMAGE, cv::Size(26,22), cv::Size(26,22));
 
 	cv::groupRectangles(eyes, 0);
 
 	for (auto& eye : eyes)
 	{
-		tpls.push_back(im(eyes[0]));
+		tpls.push_back(im(eye));
 	}
 
 	return true;
@@ -92,7 +171,7 @@ bool detectEyes(cv::Mat& im, std::vector<cv::Rect>& faces, std::vector<cv::Rect>
 
 	for (auto& eye : eyes)
 	{
-		tpls.push_back(im(eyes[0]));
+		tpls.push_back(im(eye));
 	}
 
 	return true;
@@ -107,8 +186,11 @@ bool detectEyes(cv::Mat& im, std::vector<cv::Rect>& faces, std::vector<cv::Rect>
  */
 void trackEye(cv::Mat& im, cv::Mat& tpl, cv::Rect& rect)
 {
-	cv::Size size(rect.width * 2, rect.height * 2);
-	cv::Rect window(rect + size - cv::Point(size.width/2, size.height/2));
+	cv::Rect window = rect;
+	window.x -= rect.width/2;
+	window.y -= rect.height/2;
+	window.width *= 2;
+	window.height *= 2;
 	
 	window &= cv::Rect(0, 0, im.cols, im.rows);
 
@@ -126,6 +208,36 @@ void trackEye(cv::Mat& im, cv::Mat& tpl, cv::Rect& rect)
 	}
 	else
 		rect.x = rect.y = rect.width = rect.height = 0;
+}
+
+cv::Rect resized(const cv::Rect& rect, const cv::Size& size) {
+	cv::Rect nr = rect;
+	nr += cv::Point(nr.width / 2, nr.height / 2);
+	nr.width = size.width;
+	nr.height = size.height;
+	nr -= cv::Point(nr.width / 2, nr.height / 2);
+
+	return nr;
+}
+
+void create_nn(FANN::neural_net& net) {
+	const float learning_rate = 0.7f;
+    const unsigned int num_layers = 3;
+    const unsigned int num_input = eye_size.area() / 4; // because we'll be downsizing
+    const unsigned int num_hidden = 8;
+    const unsigned int num_output = 2;
+
+	net.create_standard(num_layers, num_input, num_hidden, num_output);
+
+    net.set_learning_rate(learning_rate);
+
+    net.set_activation_steepness_hidden(1.0);
+    net.set_activation_steepness_output(1.0);
+    
+    net.set_activation_function_hidden(FANN::SIGMOID_SYMMETRIC_STEPWISE);
+    net.set_activation_function_output(FANN::SIGMOID_SYMMETRIC_STEPWISE);
+
+	//net.set_training_algorithm(FANN::TRAIN_INCREMENTAL);
 }
 
 int main(int argc, char** argv)
@@ -148,22 +260,26 @@ int main(int argc, char** argv)
 	cap.set(CV_CAP_PROP_FRAME_WIDTH, 320);
 	cap.set(CV_CAP_PROP_FRAME_HEIGHT, 240);*/
 
-	cv::namedWindow("video");
+	cv::namedWindow("video", 0);
+	cv::resizeWindow("video", 640*2, 480*2);
+	cv::moveWindow("video", (1920 - (640*2)) / 2, 0);
 	cv::setMouseCallback("video", MouseCallback);
 
 	cv::Mat frame;
 	std::vector<cv::Mat> eye_tpls;
 	std::vector<cv::Rect> face_bbs, eye_bbs;
 
+	create_nn(net);
+
 	int centered_Y = 0;
-	double eye_thresh = 60;
+	double eye_thresh = 50;
 
 	bool do_zoom = false;
 	bool do_threshold = true;
 	bool do_equalize = true;
-	bool do_actual_threshold = true;
+	bool do_actual_threshold = false;
 	bool do_downsample = true;
-	bool do_gauss = true;
+	bool do_gauss = false;
 	bool do_borders = false;
 
 	int lastKey = 0;
@@ -192,10 +308,10 @@ int main(int argc, char** argv)
 			{
 				// Do re-detection on area surrounding current bounding rectangle
 				cv::Rect large_rect = eye_bbs[0];
-				large_rect.x -= eye_bbs[0].width;
-				large_rect.y -= eye_bbs[0].height;
-				large_rect.width *= 3;
-				large_rect.height *= 3;
+				large_rect.x -= eye_bbs[0].width/2;
+				large_rect.y -= eye_bbs[0].height/2;
+				large_rect.width *= 2;
+				large_rect.height *= 2;
 
 				std::vector<cv::Rect> eyes;
 				std::vector<cv::Mat> tpls;
@@ -218,7 +334,7 @@ int main(int argc, char** argv)
 					trackEye(gray, eye_tpl, eye_bb);
 
 					// Update template with new image
-					eye_tpl = gray(eye_bb);
+					//eye_tpl = gray(eye_bb);
 				}
 
 				// Draw bounding rectangle for the eye
@@ -240,11 +356,12 @@ int main(int argc, char** argv)
 					}
 
 					cv::Rect large_rect = eye_bbs[0];
-					large_rect.x -= eye_bbs[0].width;
-					large_rect.y -= eye_bbs[0].height;
-					large_rect.width *= 3;
-					large_rect.height *= 3;
+					large_rect.x -= eye_bbs[0].width/2;
+					large_rect.y -= eye_bbs[0].height/2;
+					large_rect.width *= 2;
+					large_rect.height *= 2;
 					cv::rectangle(frame, large_rect, CV_RGB(255, 0, 0));
+					cv::rectangle(frame, resized(eye_bbs[0], eye_size), CV_RGB(0,255,255));
 
 					cv::putText(frame, std::to_string(centered_Y - eye_bbs[0].y), cv::Point(50, 50), 1, 1, CV_RGB(255, 0, 255));
 				}
@@ -274,8 +391,8 @@ int main(int argc, char** argv)
 			// Display video
 			if (eye_bbs.size() > 0 && eye_bbs[0].area() && do_zoom)
 			{
-				double scale_factor = 4.0;
-				cv::Mat zoomed = frame(eye_bbs[0]);
+				double scale_factor = pixel_scale;
+				cv::Mat zoomed = frame(resized(eye_bbs[0], eye_size));
 				if (do_threshold)
 				{
 					std::string processing_msg = "gray";
@@ -298,9 +415,11 @@ int main(int argc, char** argv)
 
 					if (do_downsample) {
 						cv::resize(zoomed, zoomed, cv::Size(), 0.5, 0.5, cv::INTER_CUBIC);
-						//cv::resize(zoomed, zoomed, cv::Size(), 2, 2, cv::INTER_NEAREST);
 						scale_factor *= 2;
 						processing_msg += "+downsample";
+						eye_data = zoomed;
+						if (bdown)
+							update_net();
 					}
 
 					std::vector<std::vector<cv::Point>> contours;
@@ -319,8 +438,26 @@ int main(int argc, char** argv)
 
 					cv::resize(zoomed, zoomed, cv::Size(), scale_factor, scale_factor, cv::INTER_NEAREST);
 
-					cv::putText(zoomed, std::to_string(eye_thresh), cv::Point(20, 40), 1, 1, CV_RGB(255, 0, 255));
 					cv::putText(zoomed, processing_msg, cv::Point(20, 20), 1, 0.75, CV_RGB(255,0,0));
+					cv::putText(zoomed, std::to_string(eye_thresh), cv::Point(20, 40), 1, 1, CV_RGB(255, 0, 255));
+					cv::Point res = cv::Point(int(std::round(zoomed.cols / scale_factor)), int(std::round(zoomed.rows / scale_factor)));
+					cv::putText(zoomed, std::to_string(res.x) + " x " + std::to_string(res.y), cv::Point(20, 60), 1, 1, CV_RGB(0,0,255));
+
+					if (do_downsample) {
+						cv::putText(zoomed, std::to_string(click_data.x) + ", " + std::to_string(click_data.y), cv::Point(20, 80), 1, 1, CV_RGB(0,255,0));
+
+						double *in = new double[eye_size.area() / 4];
+						for (unsigned i = 0; i < eye_size.area() / 4; i++) {
+							in[i] = (eye_data.data[i] / 128.) - 1.;
+						}
+						double *out = net.run(in);
+						cv::putText(zoomed, std::to_string(out[0]) + ", " + std::to_string(out[1]), cv::Point(20, 100), 1, 1, CV_RGB(0,255,255));
+						cv::Point guesspt;
+						guesspt.x = (out[0] + 1.) * (eye_size.width / 2) * pixel_scale;
+						guesspt.y = (out[1] + 1.) * (eye_size.height / 2) * pixel_scale;
+						cv::circle(zoomed, guesspt, 1, CV_RGB(0,255,255), 1);
+						delete in;
+					}
 				} else {
 					cv::resize(zoomed, zoomed, cv::Size(), scale_factor, scale_factor, cv::INTER_NEAREST);
 				}
