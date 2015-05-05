@@ -1,11 +1,17 @@
 package com.example.testerapplication;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 
 import android.app.Activity;
 import android.app.FragmentManager;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -18,10 +24,12 @@ public class ReaderActivity extends Activity {
 
 
 	public static final String WEB_MODE = "WEB_MODE";
-	public static final String SCROLL_MODE = "SCROLL_MODE";
-	public static final String CAMERA_MODE = "CAMERA_MODE";
-	public static String CUR_MODE = WEB_MODE;
+	public static final String LOGIN_MODE = "LOGIN_MODE";
 	
+//	public static String CUR_MODE = WEB_MODE;
+	
+	private DbHelper dbHelper;
+	private UserProfile currentUser;
 	
 	private Handler mHandler = null;
 	
@@ -32,6 +40,9 @@ public class ReaderActivity extends Activity {
     public boolean connected = false;
     /***********************************************************/
 
+    
+    /* ************* OpenCv Setup ***************/
+    
 	private BaseLoaderCallback	mLoaderCallback = new BaseLoaderCallback(this) {
 			@Override
 			public void onManagerConnected(int status) {
@@ -52,19 +63,17 @@ public class ReaderActivity extends Activity {
 							} break;
 					}
 			}
-	};
-
-	@Override
-	protected void onResume() {
-			super.onResume();
-		// Load Opencv
-		OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this, mLoaderCallback);
-	}
+	};	
 	
 	public void enableCameraView() {
-		((WebFragment)getFragmentManager().findFragmentByTag(WEB_MODE)).enableCameraView();
+		if (isWebMode()) {
+			((WebFragment)getFragmentManager().findFragmentByTag(WEB_MODE)).enableCameraView();
+		}
 	}
 	
+	/* ****************************************/
+	
+	/* ********** Android Lifecycle *****************/
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -72,35 +81,49 @@ public class ReaderActivity extends Activity {
 		System.out.println("on create");
 		setContentView(R.layout.activity_reader);
 		
+        dbHelper = new DbHelper(this);
 		if (savedInstanceState == null) {
+			currentUser = null;
+			
+			
 			FragmentManager fm = getFragmentManager();
-			if (CUR_MODE.equals(SCROLL_MODE)) {
-				fm.beginTransaction()
-					.add(R.id.container, new ReaderFragment(), SCROLL_MODE)
-					.commit();
-			} else if (CUR_MODE.equals(CAMERA_MODE)) {
-				//TODO: camera view
-//				setContentView(R.layout.camera_layout);
-//				mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.fd_activity_surface_view);
-//			    mOpenCvCameraView.setCvCameraViewListener(this);
-		      
-			} else if (CUR_MODE.equals(WEB_MODE)) {
+//			if (CUR_MODE.equals(SCROLL_MODE)) {
+//				fm.beginTransaction()
+//					.add(R.id.container, new ReaderFragment(), SCROLL_MODE)
+//					.commit();
+//			} else if (CUR_MODE.equals(CAMERA_MODE)) {
+//				//TODO: camera view
+////				setContentView(R.layout.camera_layout);
+////				mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.fd_activity_surface_view);
+////			    mOpenCvCameraView.setCvCameraViewListener(this);
+//		      
+//			} else if (CUR_MODE.equals(WEB_MODE)) {
 				getFragmentManager().beginTransaction()
 					.add(R.id.container,  new WebFragment(), WEB_MODE)
 					.commit();
-			}
-			mHandler = new Handler(Looper.getMainLooper());
+//			}
+			
+		} else {
+			// TODO: get information from savedInstanceState
 		}
+		mHandler = new Handler(Looper.getMainLooper());
+
+//		if (currentUser == null) {
+//			getFragmentManager().beginTransaction()
+//				.add(R.id.container,  new LoginFragment(), LOGIN_MODE)
+//				.commit();
+//		} else {
+//			getFragmentManager().beginTransaction()
+//				.add(R.id.container, new WebFragment(), WEB_MODE)
+//				.commit();
+//		}
 	}
 	
-	public void newReadPosition(double x, double y) {
-		if (CUR_MODE.equals(WEB_MODE)) {
-			((WebFragment)getFragmentManager().findFragmentByTag(WEB_MODE)).newReadPosition(x, y);
-		}
-	}
-	
-	public Handler getHandler() {
-		return mHandler;
+	@Override
+	protected void onResume() {
+			super.onResume();
+		// Load Opencv
+		OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this, mLoaderCallback);
 	}
 	
 	@Override
@@ -121,6 +144,103 @@ public class ReaderActivity extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
+	/* **********************************/
+	
+	
+	
+	/* ******  Callbacks ******************/
+	public void newReadPosition(double x, double y) {
+//		if (CUR_MODE.equals(WEB_MODE)) {
+			((WebFragment)getFragmentManager().findFragmentByTag(WEB_MODE)).newReadPosition(x, y);
+//		}
+	}
+	/* ***********************************/
+	
+	
+	/* ******** User Db ******************/
 
+	public Set<UserProfile> getProfiles() {
+		Set<UserProfile> result = new HashSet<UserProfile>();
+		SQLiteDatabase db = dbHelper.getReadableDatabase();
+		if (!isTableExists(DbHelper.USER_TABLE_NAME, db)) {
+			db.execSQL(DbHelper.SQL_CREATE_USERS_TABLE);
+		} else {
+			db.beginTransaction();
+			try {
+				String sql = "Select " + DbHelper.USER_ID;
+				sql += " from " + DbHelper.USER_TABLE_NAME;
+				Cursor cursor = db.rawQuery(sql, null);
+				if (cursor != null && cursor.getCount() > 0) {
+					cursor.moveToFirst();
+					while (!cursor.isAfterLast()) {
+						String userName = cursor.getString(0);
+						UserProfile user = new UserProfile(userName);
+						result.add(user);
+						cursor.moveToNext();
+					}
+					db.setTransactionSuccessful();
+				}
+			} finally {
+				db.endTransaction();
+			}
+
+		}
+		return result;
+	}
+	
+	public boolean createProfile(UserProfile user) {
+		boolean result = false;
+		SQLiteDatabase db = dbHelper.getWritableDatabase();
+		ContentValues values = new ContentValues();
+		values.put(DbHelper.USER_ID, user.getUserName());
+		db.beginTransaction();
+		try {
+			// need to change schema of local database to match new UUID format
+			long newRowId = db.insert(DbHelper.USER_TABLE_NAME, null, values);
+			if (newRowId == -1) {
+				System.err.println("error entering user into database");
+			} else {
+				db.setTransactionSuccessful();
+				result = true;
+			}
+		} finally {
+			db.endTransaction();
+		}
+		return result;
+	}
+	
+	public boolean removeProfile(UserProfile user) {
+		return false;
+	}
+	
+	private boolean isTableExists(String tableName, SQLiteDatabase db) {
+	    boolean result = false;
+		Cursor cursor = db.rawQuery(
+				"select DISTINCT tbl_name from sqlite_master where tbl_name = '"+tableName+"'", null);
+	    if (cursor != null) {
+	    	if (cursor.getCount() > 0) {
+	    		result = true;
+	    	}
+	    	cursor.close();
+	    }
+	    return result;
+	}
+	/* ***************************************/
+	
+	/* ******* Getters/Setters ****************/
+
+	private boolean isWebMode() {
+		try {
+			return getFragmentManager().findFragmentByTag(WEB_MODE).isVisible();
+		} catch (NullPointerException e) {
+			return false;
+		}
+	}
+	
+	public Handler getHandler() {
+		return mHandler;
+	}
+	
+	/* ****************************************/
 	
 }
