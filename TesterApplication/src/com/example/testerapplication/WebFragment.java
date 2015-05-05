@@ -96,18 +96,19 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 //		}
 //	}
 	
+	// Takes a point between -1 and 1
 	public void newReadPosition(double x, double y) {
 		mMonitor.newReadPosition(getView(), x, y);
 	}
 	
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
-		int id = v.getId();
-		int action = event.getAction();
-		PointerCoords pc0 = new PointerCoords();
-		event.getPointerCoords(0, pc0);
-		mMonitor.newReadPosition(getView(), pc0.x, pc0.y);
-		return true;
+//		int id = v.getId();
+//		int action = event.getAction();
+//		PointerCoords pc0 = new PointerCoords();
+//		event.getPointerCoords(0, pc0);
+//		mMonitor.newReadPosition(getView(), pc0.x, pc0.y);
+		return false;
 	}
 
 	@Override

@@ -30,15 +30,15 @@ public class CVProcessingThread extends Thread implements Runnable {
 	@Override
 	public void run() {
 		// call Sunjays code 
-		
+		final DoublePoint dp = NativeInterface.onNewFrame(mat);
+
 		// send result back to UI thread. Shahar will do this
-		final Random r = new Random();
-//		ra.getHandler().post(new Runnable() {
-//			@Override
-//			public void run() {
-//				nrc.newReadPosition(80, 80);
-//			}
-//		});
+		ra.getHandler().post(new Runnable() {
+			@Override
+			public void run() {
+				nrc.newReadPosition(dp.x, dp.y);
+			}
+		});
 	}
 
 }

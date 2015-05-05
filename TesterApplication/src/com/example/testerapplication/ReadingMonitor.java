@@ -92,12 +92,37 @@ public class ReadingMonitor {
 		vg.scrollBy(dx, dy);
 	}
 	
+	private DoublePoint convertPoint(double x, double y) {
+		DoublePoint result = new DoublePoint();
+		result.x = mapCoor(x, scrollable.getRight() - scrollable.getLeft()) + scrollable.getLeft();
+		result.y = mapCoor(y, scrollable.getBottom() - scrollable.getTop()) + scrollable.getTop();
+		return result;
+	}
+	
+	// coor is between -1 and 1
+	private double mapCoor(double coor, double width) {
+		// switch coor to be between 0 and 1;
+		coor = (coor + 1) / 2;
+		return width * coor;
+	}
+	
+	// Takes value from -1 to 1
 	public void newReadPosition(View rootView, double x, double y) {
 		if (waitCount > 0) {
 			//recently scrolled. want to wait for the eys to adjust
 			waitCount--;
 			return;
 		}
+		circleOverlay = (ViewGroup)rootView.findViewById(circleOverlayId);
+		colorOverlay = (TableLayout)rootView.findViewById(colorOverlayId);
+		scrollable = (ViewGroup)rootView.findViewById(viewIdScrollable);
+		this.rootView = rootView;
+		
+		x = 2 * Math.random() -1;
+		y = 2 * Math.random() -1;
+		DoublePoint dp = convertPoint(x, y);
+		x = dp.x;
+		y = dp.y;
 		
 		// Check if first read point. Call has side effects!
 		if (!initialize(x, y)) {
@@ -125,10 +150,7 @@ public class ReadingMonitor {
 			avgY = y * AVG_UPDATE_FACTOR + (1-AVG_UPDATE_FACTOR) * avgY;
 		}
 		
-		circleOverlay = (ViewGroup)rootView.findViewById(circleOverlayId);
-		colorOverlay = (TableLayout)rootView.findViewById(colorOverlayId);
-		scrollable = (ViewGroup)rootView.findViewById(viewIdScrollable);
-		this.rootView = rootView;
+		
 		
 		//TODO: figure out double vs int
 		drawCircle((int)x, (int)y, 30, 0x66000000, true);

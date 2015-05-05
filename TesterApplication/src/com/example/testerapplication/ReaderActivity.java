@@ -66,9 +66,8 @@ public class ReaderActivity extends Activity {
 	};	
 	
 	public void enableCameraView() {
-		if (isWebMode()) {
-			((WebFragment)getFragmentManager().findFragmentByTag(WEB_MODE)).enableCameraView();
-		}
+		((WebFragment)getFragmentManager().findFragmentByTag(WEB_MODE)).enableCameraView();
+		
 	}
 	
 	/* ****************************************/
@@ -150,9 +149,7 @@ public class ReaderActivity extends Activity {
 	
 	/* ******  Callbacks ******************/
 	public void newReadPosition(double x, double y) {
-//		if (CUR_MODE.equals(WEB_MODE)) {
-			((WebFragment)getFragmentManager().findFragmentByTag(WEB_MODE)).newReadPosition(x, y);
-//		}
+		((WebFragment)getFragmentManager().findFragmentByTag(WEB_MODE)).newReadPosition(x, y);
 	}
 	/* ***********************************/
 	
