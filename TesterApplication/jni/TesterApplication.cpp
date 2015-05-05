@@ -2,6 +2,8 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/types_c.h>
 
+#include "eye_tracker.cpp"
+
 #include <cstdio>
 
 using namespace std;
@@ -19,5 +21,27 @@ extern "C" {
 
 		return M.cols;
 	}
+
+	JNIEXPORT jint JNICALL Java_com_example_testerapplication_NativeInterface_nativeOnNewFrame
+		(JNIEnv *env, jobject obj, jlong mat, jobject dp) {
+		//TODO: translation from java to c, then call sunjay's code
+		cv::Mat *cMat = (cv::Mat *)mat;
+		std::pair<double, double> *resultPt = cppOnNewFrame(cMat);
+		jclass cls = env->GetObjectClass(dp);
+		jfieldID x = env->GetFieldID(cls, "x", "D");
+		jfieldID y = env->GetFieldID(cls, "y", "D");
+		env->SetDoubleField(dp, x, resultPt->first);
+		env->SetDoubleField(dp, y , resultPt->second);
+		delete resultPt;
+		return 1;
+	}
+
+	JNIEXPORT jint JNICALL Java_com_example_testerapplication_NativeInterface_nativeTrainOnFrame
+		(JNIEnv *env, jobject obj, jlong mat, jdouble x, jdouble y) {
+		cv::Mat *cMat = (cv::Mat *)mat;
+		int resultCode = cppTrainOnFrame(cMat, x, y);
+		return resultCode;
+	}
+
 
 }
