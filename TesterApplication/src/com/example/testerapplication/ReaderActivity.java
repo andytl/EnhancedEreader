@@ -1,5 +1,9 @@
 package com.example.testerapplication;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,6 +13,7 @@ import org.opencv.android.OpenCVLoader;
 
 import android.app.Activity;
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -31,6 +36,9 @@ public class ReaderActivity extends Activity {
 	private DbHelper dbHelper;
 	private UserProfile currentUser;
 	
+	public File mCascadeFace;
+	public File mCascadeEyes;
+	
 	private Handler mHandler = null;
 	
 	/**********      camera stuff      ***************************/
@@ -41,6 +49,7 @@ public class ReaderActivity extends Activity {
     /***********************************************************/
 
     
+    
     /* ************* OpenCv Setup ***************/
     
 	private BaseLoaderCallback	mLoaderCallback = new BaseLoaderCallback(this) {
@@ -49,12 +58,46 @@ public class ReaderActivity extends Activity {
 					switch (status) {
 							case LoaderCallbackInterface.SUCCESS:
 							{
-									Log.i("TesterApplication", "OpenCV loaded successfully");
-									System.loadLibrary("TesterApplication"); 
-									// Load native library after(!) OpenCV initialization
-									System.out.println("JNI Loaded");
-									enableCameraView();
-									connected = true;
+								Log.i("TesterApplication", "OpenCV loaded successfully");
+								System.loadLibrary("TesterApplication"); 
+								try {
+									File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
+			                        mCascadeFace = new File(cascadeDir, "local_eyes.xml");
+			                        mCascadeEyes = new File(cascadeDir, "local_eyes");
+									
+									InputStream is = getResources().openRawResource(R.raw.haarcascade_frontalface_alt2);
+			                    
+			                        FileOutputStream os = new FileOutputStream(mCascadeFace);
+
+			                        byte[] buffer = new byte[4096];
+			                        int bytesRead;
+			                        while ((bytesRead = is.read(buffer)) != -1) {
+			                            os.write(buffer, 0, bytesRead);
+			                        }
+			                        is.close();
+			                        os.close();
+			                        
+			                        is = getResources().openRawResource(R.raw.haarcascade_mcs_lefteye);
+			                        os = new FileOutputStream(mCascadeEyes);
+			                        
+			                        while ((bytesRead = is.read(buffer)) != -1) {
+			                        	os.write(buffer, 0, bytesRead);
+			                        }
+			                        is.close();
+			                        os.close();
+			                        int result = NativeInterface.initializeTracker(mCascadeFace.getAbsolutePath(), mCascadeEyes.getAbsolutePath());
+			                		if (result == 0) {
+			                			System.err.println("Something failed to load!!!!");
+			                			return;
+			                		}
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+								
+								// Load native library after(!) OpenCV initialization
+								System.out.println("JNI Loaded");
+								enableCameraView();
+								connected = true;
 							} break;
 							default:
 							{

@@ -23,13 +23,14 @@ public class EyePositionThread implements Runnable {
 	public void run() {
 		// call Sunjays code 
 		final DoublePoint dp = NativeInterface.onNewFrame(mat);
+		System.err.println("x: " + dp.x + "\ty: " + dp.y);
 
 		// send result back to UI thread. Shahar will do this
 		ra.getHandler().post(new Runnable() {
 			@Override
 			public void run() {
-//				nrc.newReadPosition(dp.x, dp.y);
-				nrc.newReadPosition(Math.random() * (Math.random() > .5 ? 1 : -1), Math.random() * (Math.random() > .5 ? 1 : -1));
+				nrc.newReadPosition(dp.x, dp.y);
+//				nrc.newReadPosition(Math.random() * (Math.random() > .5 ? 1 : -1), Math.random() * (Math.random() > .5 ? 1 : -1));
 				System.gc();
 			}
 		});

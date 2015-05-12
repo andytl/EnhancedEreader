@@ -1,5 +1,7 @@
 package com.example.testerapplication;
 
+import java.io.File;
+
 import org.opencv.core.Mat;
 
 public class NativeInterface {
@@ -27,16 +29,18 @@ public class NativeInterface {
 		int resultCode = nativeTrainOnFrame(mat.nativeObj, x, y);
 	}
 	
+
 	
-	public void trainOnFrame(Mat mat, DoublePoint dp) {
-		
+	public static int initializeTracker(String face, String eyes) {
+		return nativeInitializeTracker(face, eyes);
 	}
 	
 	public int getFoo() {
 		return fooVal;
 	}
 	
-	private static native int nativeOnNewFrame(long mat, DoublePoint dp);
+	private static native int nativeInitializeTracker(String face, String eyes);
+	public static native int nativeOnNewFrame(long mat, DoublePoint dp);
 	private static native int nativeTrainOnFrame(long mat, double x, double y);
 	private static native int foo();
 }

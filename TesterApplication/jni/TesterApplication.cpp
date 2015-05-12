@@ -22,8 +22,19 @@ extern "C" {
 		return M.cols;
 	}
 
+	JNIEXPORT jint JNICALL Java_com_example_testerapplication_NativeInterface_nativeInitializeTracker
+		(JNIEnv *env, jobject obj, jstring face, jstring eye)
+	{
+		const char* faceptr = env->GetStringUTFChars(face, NULL);
+		const char* eyeptr = env->GetStringUTFChars(eye, NULL);
+		return setupNativeCode(faceptr, eyeptr);
+
+	}
+
+
 	JNIEXPORT jint JNICALL Java_com_example_testerapplication_NativeInterface_nativeOnNewFrame
-		(JNIEnv *env, jobject obj, jlong mat, jobject dp) {
+		(JNIEnv *env, jobject obj, jlong mat, jobject dp)
+	{
 		//TODO: translation from java to c, then call sunjay's code
 		cv::Mat *cMat = (cv::Mat *)mat;
 		std::pair<double, double> *resultPt = cppOnNewFrame(cMat);
@@ -37,7 +48,8 @@ extern "C" {
 	}
 
 	JNIEXPORT jint JNICALL Java_com_example_testerapplication_NativeInterface_nativeTrainOnFrame
-		(JNIEnv *env, jobject obj, jlong mat, jdouble x, jdouble y) {
+		(JNIEnv *env, jobject obj, jlong mat, jdouble x, jdouble y)
+	{
 		cv::Mat *cMat = (cv::Mat *)mat;
 		int resultCode = cppTrainOnFrame(cMat, x, y);
 		return resultCode;
