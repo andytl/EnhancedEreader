@@ -1,5 +1,8 @@
 package com.example.testerapplication;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
@@ -29,6 +32,8 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 	private static final int CALIBRATE_FRAME_COUNT = 100;
 	private boolean complete = false;
 	private ReaderActivity ra;
+    private ExecutorService threadPool;
+
 
     @Override
     public void onAttach(Activity activity) {
@@ -48,6 +53,7 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 		mOpenCvCameraView.setCvCameraViewListener(this);
 		mOpenCvCameraView.setCameraIndex(1);
 		this.frameCount = 0;
+		threadPool = Executors.newFixedThreadPool(100);
 		return rootView;
 	}
 	
@@ -153,22 +159,21 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 			});
 			return null;		
 		} else {
-		
-			mRgba = inputFrame.rgba();
-			mGray = inputFrame.gray();
-	//		Mat mRgbaT = mRgba.t();
-	//		Core.flip(mRgba.t(), mRgbaT, -1);
-	//		Imgproc.resize(mRgbaT, mRgbaT, mRgba.size());
+			Mat gray = inputFrame.gray();
+			Mat grayT = gray.t();
+			Core.flip(gray.t(), grayT, -1);
+			Imgproc.resize(grayT, grayT, gray.size());
+			gray.release();
 			if (frameCount > CALIBRATE_FRAME_COUNT) {
 				frameCount = 0;
 				setNextCalibratePosition(getActivity(), getView());
 			}
 			
 			
-			new CalibratePositionThread(curX, curY, mGray).start();
+			threadPool.execute(new CalibratePositionThread(curX, curY, grayT));
 			frameCount++;
 			
-			return mRgba;
+			return grayT;
 		}
 	}
 	

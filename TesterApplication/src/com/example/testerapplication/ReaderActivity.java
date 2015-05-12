@@ -21,6 +21,7 @@ import android.view.MenuItem;
 
 public class ReaderActivity extends Activity {
 
+	public static final boolean VERBOSE = false; 
 
 	public static final String WEB_MODE = "WEB_MODE";
 	public static final String LOGIN_MODE = "LOGIN_MODE";

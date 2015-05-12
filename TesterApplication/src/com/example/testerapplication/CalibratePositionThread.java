@@ -2,7 +2,7 @@ package com.example.testerapplication;
 
 import org.opencv.core.Mat;
 
-public class CalibratePositionThread extends Thread implements Runnable {
+public class CalibratePositionThread implements Runnable {
 	private double x;
 	private double y;
 	private Mat mat;

@@ -46,6 +46,7 @@ public class LoginFragment extends Fragment implements OnItemClickListener, OnCl
 		int i = 0;
 		while (iter.hasNext()) {
 			userNames[i] = iter.next();
+			i++;
 		}
 		ArrayAdapter<String> adapter = 	new ArrayAdapter<String>(ra, R.layout.user_list_item, userNames);
 		userList.setAdapter(adapter);

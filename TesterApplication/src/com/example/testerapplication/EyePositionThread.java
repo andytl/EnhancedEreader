@@ -4,7 +4,7 @@ import java.util.Random;
 
 import org.opencv.core.Mat;
 
-public class EyePositionThread extends Thread implements Runnable {
+public class EyePositionThread implements Runnable {
 
 	private Mat mat;
 	private ReaderActivity ra;
@@ -28,7 +28,9 @@ public class EyePositionThread extends Thread implements Runnable {
 		ra.getHandler().post(new Runnable() {
 			@Override
 			public void run() {
-				nrc.newReadPosition(dp.x, dp.y);
+//				nrc.newReadPosition(dp.x, dp.y);
+				nrc.newReadPosition(Math.random() * (Math.random() > .5 ? 1 : -1), Math.random() * (Math.random() > .5 ? 1 : -1));
+				System.gc();
 			}
 		});
 	}

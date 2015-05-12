@@ -1,9 +1,15 @@
 package com.example.testerapplication;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
+import org.opencv.core.Core;
+import org.opencv.core.CvException;
 import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
 
 import android.app.Activity;
 import android.app.Fragment;
@@ -11,7 +17,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
-import android.view.MotionEvent.PointerCoords;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
@@ -21,9 +26,14 @@ import android.webkit.WebViewClient;
 public class WebFragment extends Fragment implements OnTouchListener, CvCameraViewListener2, NewReadCallback{
 
 	private ReadingMonitor mMonitor;
-	private Mat                    mRgba;
-	private Mat                    mGray;
+	private Mat                     mRgba;
+	private Mat                     mGray;
+	private Mat 					mGrayT;
     public CameraBridgeViewBase   mOpenCvCameraView = null;
+    
+    private int frameCount = 0;
+    
+    private ExecutorService threadPool;
 	
 	
 	@Override
@@ -42,7 +52,9 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 		ReaderActivity ra = (ReaderActivity)getActivity();
 		mOpenCvCameraView = (CameraBridgeViewBase) rootView.findViewById(R.id.web_camera_view);
 		mOpenCvCameraView.setCvCameraViewListener(this);
-		
+		mOpenCvCameraView.setCameraIndex(1);
+
+		threadPool = Executors.newFixedThreadPool(100);
 		return rootView;
 	}
 	
@@ -113,19 +125,32 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 	@Override
 	public void onCameraViewStarted(int width, int height) {
 	    mGray = new Mat();
-        mRgba = new Mat();		
+        mRgba = new Mat();
+        mGrayT = new Mat();
 	}
 
 	@Override
 	public void onCameraViewStopped() {
-		mGray.release();
-		mRgba.release();		
+		if (mGray != null) {
+			mGray.release();
+		} 
+		if (mRgba != null) {
+			mRgba.release();	
+		}
 	}
 
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-		System.out.println(inputFrame.hashCode());
-		new EyePositionThread(inputFrame.gray(), (ReaderActivity)getActivity(), this).start();
-		return inputFrame.rgba();
+		if (ReaderActivity.VERBOSE) System.out.println(inputFrame.hashCode());
+		mGray = inputFrame.gray();
+		Mat temp1 = mGray.t();
+		mGrayT = mGray.t();
+		Core.flip(temp1,  mGrayT,  -1);
+		Imgproc.resize(mGrayT, mGray, mGray.size());
+		temp1.release();
+		mGrayT.release();
+		threadPool.execute(new EyePositionThread(mGray, (ReaderActivity)getActivity(), this));
+		return mGray;
+		
 	}
 }

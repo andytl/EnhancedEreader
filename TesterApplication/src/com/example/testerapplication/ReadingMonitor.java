@@ -167,7 +167,7 @@ public class ReadingMonitor {
 		drawCircle((int)avgX, (int)avgY, 20, 0xFFFF0000, false);
 		updateScroll();
 		updateBlur();
-		System.out.println("ValidRate: " + validRate);
+		if (ReaderActivity.VERBOSE) System.out.println("ValidRate: " + validRate);
 		circleOverlay = null;
 		colorOverlay = null;
 		scrollable = null;
@@ -176,7 +176,7 @@ public class ReadingMonitor {
 	}
 
 	private void updateBlur() {
-		System.out.println("udpateBlur");
+		if (ReaderActivity.VERBOSE) System.out.println("udpateBlur");
 		int top = scrollable.getTop();
 		int bottom = scrollable.getBottom();
 		int center = (top + bottom)/2;
@@ -203,7 +203,7 @@ public class ReadingMonitor {
 	private void updateScroll() {
 		if (KEEP_TOP.equals(curMode)) {
 			int center = (scrollable.getBottom() + scrollable.getTop())/2;
-			System.out.println("Center: " + center + "\tAvg: " + avgY);
+			if (ReaderActivity.VERBOSE) System.out.println("Center: " + center + "\tAvg: " + avgY);
 			if (center < avgY) {
 				scrollable.scrollBy(0, center/6);
 				clearReadData();
