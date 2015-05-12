@@ -53,8 +53,7 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 		final Context context = getActivity();
 		WebView wv = (WebView) rootView.findViewById(R.id.web_view);
 		wv.setWebViewClient(new WebViewClient());
-		//wv.loadData("<p>asdf</p>", "text/html", null);
-		wv.loadUrl("http://www.google.com");
+		wv.loadUrl("https://www.gutenberg.org/files/31547/31547-h/31547-h.htm");		
 		rootView.post(new Runnable() {
 			@Override
 			public void run() {
@@ -62,9 +61,9 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 //				createOverlay(rootView, R.id.web_color_overlay);
 			}
 		});
-		if (((ReaderActivity)getActivity()).connected) {
+//		if (((ReaderActivity)getActivity()).connected) {
 			enableCameraView();
-		}
+//		}
 	}
 	
 	public void enableCameraView() {
@@ -126,9 +125,7 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		System.out.println(inputFrame.hashCode());
-		View rootView = getView();
-		new CVProcessingThread(inputFrame.gray(), (ReaderActivity)getActivity(), this,  
-				rootView.getTop(), rootView.getBottom(), rootView.getLeft(), rootView.getRight()).start();
+		new EyePositionThread(inputFrame.gray(), (ReaderActivity)getActivity(), this).start();
 		return inputFrame.rgba();
 	}
 }

@@ -35,7 +35,8 @@ public class ReadingMonitor {
 	private double curY = -1;
 	private double outX = -1;
 	private double outY = -1;
-	private int outCount = 0;
+	private int unfocusCount = 0;
+	private int offScreenCount = 0;
 	private double validRate = 1;
 	private int waitCount = 0;
 	
@@ -113,13 +114,22 @@ public class ReadingMonitor {
 			waitCount--;
 			return;
 		}
+		
+		// grab the web views and overlays
 		circleOverlay = (ViewGroup)rootView.findViewById(circleOverlayId);
 		colorOverlay = (TableLayout)rootView.findViewById(colorOverlayId);
 		scrollable = (ViewGroup)rootView.findViewById(viewIdScrollable);
 		this.rootView = rootView;
 		
-		x = 2 * Math.random() -1;
-		y = 2 * Math.random() -1;
+//		x = 2 * Math.random() -1;
+//		y = 2 * Math.random() -1;
+		if (Math.abs(x) > 1 || Math.abs(y) > 1) {
+			offScreenCount++;
+			return;
+		} else {
+			offScreenCount = Math.max(offScreenCount - 1, 0);
+		}
+		
 		DoublePoint dp = convertPoint(x, y);
 		x = dp.x;
 		y = dp.y;
@@ -131,13 +141,13 @@ public class ReadingMonitor {
 		// check if point is too far away from average read position
 		if (Math.abs(x-avgX) > MAX_VALID_DX || Math.abs(y-avgY) > MAX_VALID_DY) {
 			if (Math.abs(outX-x) < MAX_VALID_DX && Math.abs(y-outY) < MAX_VALID_DY) {
-				outCount++;
+				unfocusCount++;
 			} else {
-				outCount = 0;
+				unfocusCount = 0;
 			}
 			outX = x;
 			outY = y;
-			if (outCount > 30) {
+			if (unfocusCount > 30) {
 				avgX = outX;
 				avgY = outY;
 				validRate = 1;
@@ -213,7 +223,7 @@ public class ReadingMonitor {
 		curY = -1;
 		outX = -1;
 		outY = -1;
-		outCount = 0;
+		unfocusCount = 0;
 	}
 	
 	// if uninitialized, uses x, y as initial values. Returns false if uninitialized when called

@@ -1,5 +1,6 @@
 package com.example.testerapplication;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -31,4 +32,24 @@ public class DbHelper extends SQLiteOpenHelper{
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {		
 	}
     
+	public boolean addUser(UserProfile user) {
+		boolean result = true;
+		SQLiteDatabase db = this.getWritableDatabase();
+		ContentValues values = new ContentValues();
+		values.put(USER_ID, user.getUserName());
+		db.beginTransaction();
+		try {
+			long newRowId = db.insert(USER_TABLE_NAME, null, values);
+			if (newRowId == -1) {
+				System.err.println("error entering user into database");
+				result = false;
+			} else {
+				db.setTransactionSuccessful();
+			}
+		} finally {
+			db.endTransaction();
+		}
+		return result;
+	}
+	
 }

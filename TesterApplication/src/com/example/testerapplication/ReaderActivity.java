@@ -1,14 +1,13 @@
 package com.example.testerapplication;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 
 import android.app.Activity;
-import android.app.FragmentManager;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -25,8 +24,8 @@ public class ReaderActivity extends Activity {
 
 	public static final String WEB_MODE = "WEB_MODE";
 	public static final String LOGIN_MODE = "LOGIN_MODE";
+	public static final String CALIBRATE_MODE = "CALIBRATE_MODE";
 	
-//	public static String CUR_MODE = WEB_MODE;
 	
 	private DbHelper dbHelper;
 	private UserProfile currentUser;
@@ -52,10 +51,9 @@ public class ReaderActivity extends Activity {
 									Log.i("TesterApplication", "OpenCV loaded successfully");
 									System.loadLibrary("TesterApplication"); 
 									// Load native library after(!) OpenCV initialization
-									NativeInterface tester = new NativeInterface();
-									tester.doFoo();
-									System.out.println("JNI Loaded, foo= " + tester.getFoo());
+									System.out.println("JNI Loaded");
 									enableCameraView();
+									connected = true;
 							} break;
 							default:
 							{
@@ -66,8 +64,11 @@ public class ReaderActivity extends Activity {
 	};	
 	
 	public void enableCameraView() {
-		((WebFragment)getFragmentManager().findFragmentByTag(WEB_MODE)).enableCameraView();
-		
+		if (isWebMode()) {
+			((WebFragment)getFragmentManager().findFragmentByTag(WEB_MODE)).enableCameraView();
+		} else if (isCalibrateMode()) {
+			((CalibrateFragment)getFragmentManager().findFragmentByTag(CALIBRATE_MODE)).enableCameraView();
+		}
 	}
 	
 	/* ****************************************/
@@ -83,39 +84,25 @@ public class ReaderActivity extends Activity {
         dbHelper = new DbHelper(this);
 		if (savedInstanceState == null) {
 			currentUser = null;
-			
-			
-			FragmentManager fm = getFragmentManager();
-//			if (CUR_MODE.equals(SCROLL_MODE)) {
-//				fm.beginTransaction()
-//					.add(R.id.container, new ReaderFragment(), SCROLL_MODE)
-//					.commit();
-//			} else if (CUR_MODE.equals(CAMERA_MODE)) {
-//				//TODO: camera view
-////				setContentView(R.layout.camera_layout);
-////				mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.fd_activity_surface_view);
-////			    mOpenCvCameraView.setCvCameraViewListener(this);
-//		      
-//			} else if (CUR_MODE.equals(WEB_MODE)) {
-				getFragmentManager().beginTransaction()
-					.add(R.id.container,  new WebFragment(), WEB_MODE)
-					.commit();
-//			}
-			
+//			
+//			getFragmentManager().beginTransaction()
+//				.add(R.id.container,  new WebFragment(), WEB_MODE)
+//				.commit();
+//			
 		} else {
 			// TODO: get information from savedInstanceState
 		}
 		mHandler = new Handler(Looper.getMainLooper());
 
-//		if (currentUser == null) {
-//			getFragmentManager().beginTransaction()
-//				.add(R.id.container,  new LoginFragment(), LOGIN_MODE)
-//				.commit();
-//		} else {
-//			getFragmentManager().beginTransaction()
-//				.add(R.id.container, new WebFragment(), WEB_MODE)
-//				.commit();
-//		}
+		if (currentUser == null) {
+			getFragmentManager().beginTransaction()
+				.add(R.id.container,  new LoginFragment(), LOGIN_MODE)
+				.commit();
+		} else {
+			getFragmentManager().beginTransaction()
+				.add(R.id.container, new WebFragment(), WEB_MODE)
+				.commit();
+		}
 	}
 	
 	@Override
@@ -151,13 +138,37 @@ public class ReaderActivity extends Activity {
 	public void newReadPosition(double x, double y) {
 		((WebFragment)getFragmentManager().findFragmentByTag(WEB_MODE)).newReadPosition(x, y);
 	}
+	
+	public void selectUser(UserProfile user) {
+		currentUser = user;
+		getFragmentManager().beginTransaction()
+			.add(R.id.container, new WebFragment(), WEB_MODE)
+			.commit();
+	}
+	
+	public void createNewUser(String userName) {
+		UserProfile user = new UserProfile(userName);
+		currentUser = user;
+		boolean result = dbHelper.addUser(currentUser);
+		if (result) {
+			getFragmentManager().beginTransaction()
+				.replace(R.id.container,  new CalibrateFragment(), CALIBRATE_MODE)
+				.commit();
+		}
+	}
+	
+	public void enterWebMode() {
+		getFragmentManager().beginTransaction()
+			.replace(R.id.container, new WebFragment(), WEB_MODE)
+			.commit();
+	}
 	/* ***********************************/
 	
 	
 	/* ******** User Db ******************/
 
-	public Set<UserProfile> getProfiles() {
-		Set<UserProfile> result = new HashSet<UserProfile>();
+	public Map<String, UserProfile> getProfiles() {
+		Map<String, UserProfile> result = new HashMap<String,UserProfile>();
 		SQLiteDatabase db = dbHelper.getReadableDatabase();
 		if (!isTableExists(DbHelper.USER_TABLE_NAME, db)) {
 			db.execSQL(DbHelper.SQL_CREATE_USERS_TABLE);
@@ -172,7 +183,7 @@ public class ReaderActivity extends Activity {
 					while (!cursor.isAfterLast()) {
 						String userName = cursor.getString(0);
 						UserProfile user = new UserProfile(userName);
-						result.add(user);
+						result.put(userName, user);
 						cursor.moveToNext();
 					}
 					db.setTransactionSuccessful();
@@ -227,8 +238,16 @@ public class ReaderActivity extends Activity {
 	/* ******* Getters/Setters ****************/
 
 	private boolean isWebMode() {
+		return isFragmentMode(WEB_MODE);
+	}
+	
+	private boolean isCalibrateMode() {
+		return isFragmentMode(CALIBRATE_MODE);
+	}
+	
+	private boolean isFragmentMode(String fragmentMode) {
 		try {
-			return getFragmentManager().findFragmentByTag(WEB_MODE).isVisible();
+			return getFragmentManager().findFragmentByTag(fragmentMode).isVisible();
 		} catch (NullPointerException e) {
 			return false;
 		}

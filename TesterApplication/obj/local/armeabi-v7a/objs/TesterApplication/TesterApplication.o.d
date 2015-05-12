@@ -35,16 +35,14 @@ obj/local/armeabi-v7a/objs/TesterApplication/TesterApplication.o: \
  /Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/platforms/android-21/arch-arm/usr/include/linux/limits.h \
  /Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/platforms/android-21/arch-arm/usr/include/sys/syslimits.h \
  /Users/Shahar_Levari/Documents/CSE/Courses/Capstone/OpenCV4Android/OpenCV-2.4.11-android-sdk/sdk/native/jni/include/opencv2/core/version.hpp \
- /Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.8/include/algorithm \
- /Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.8/include/cmath \
- /Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.8/include/cstddef \
- /Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.8/include/complex \
- /Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.8/include/map \
- /Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.8/include/vector \
+ /Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.9/include/algorithm \
+ /Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.9/include/cstddef \
+ /Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.9/include/complex \
+ /Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.9/include/map \
  /Users/Shahar_Levari/Documents/CSE/Courses/Capstone/OpenCV4Android/OpenCV-2.4.11-android-sdk/sdk/native/jni/include/opencv2/core/operations.hpp \
- /Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.8/include/limits \
  /Users/Shahar_Levari/Documents/CSE/Courses/Capstone/OpenCV4Android/OpenCV-2.4.11-android-sdk/sdk/native/jni/include/opencv2/core/mat.hpp \
- /Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.8/include/cstdio
+ jni/eye_tracker.cpp \
+ /Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.9/include/cstdio
 
 /Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/platforms/android-21/arch-arm/usr/include/jni.h:
 
@@ -116,22 +114,18 @@ obj/local/armeabi-v7a/objs/TesterApplication/TesterApplication.o: \
 
 /Users/Shahar_Levari/Documents/CSE/Courses/Capstone/OpenCV4Android/OpenCV-2.4.11-android-sdk/sdk/native/jni/include/opencv2/core/version.hpp:
 
-/Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.8/include/algorithm:
+/Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.9/include/algorithm:
 
-/Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.8/include/cmath:
+/Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.9/include/cstddef:
 
-/Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.8/include/cstddef:
+/Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.9/include/complex:
 
-/Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.8/include/complex:
-
-/Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.8/include/map:
-
-/Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.8/include/vector:
+/Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.9/include/map:
 
 /Users/Shahar_Levari/Documents/CSE/Courses/Capstone/OpenCV4Android/OpenCV-2.4.11-android-sdk/sdk/native/jni/include/opencv2/core/operations.hpp:
 
-/Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.8/include/limits:
-
 /Users/Shahar_Levari/Documents/CSE/Courses/Capstone/OpenCV4Android/OpenCV-2.4.11-android-sdk/sdk/native/jni/include/opencv2/core/mat.hpp:
 
-/Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.8/include/cstdio:
+jni/eye_tracker.cpp:
+
+/Users/Shahar_Levari/Documents/CSE/Courses/Capstone/Gen_tools/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.9/include/cstdio:

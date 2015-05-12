@@ -4,26 +4,18 @@ import java.util.Random;
 
 import org.opencv.core.Mat;
 
-public class CVProcessingThread extends Thread implements Runnable {
+public class EyePositionThread extends Thread implements Runnable {
 
 	private Mat mat;
 	private ReaderActivity ra;
 	private NewReadCallback nrc;
-	private double top;
-	private double bottom;
-	private double left;
-	private double right;
+	private boolean calibrate;
 
 	
-	public CVProcessingThread(Mat mat,  ReaderActivity ra, NewReadCallback nrc,
-								double top, double bottom, double left, double right) {
+	public EyePositionThread(Mat mat, ReaderActivity ra, NewReadCallback nrc) {
 		this.mat = mat;
 		this.ra = ra;
 		this.nrc = nrc;
-		this.top = top;
-		this.bottom = bottom;
-		this.left = left;
-		this.right = right;
 	}
 	
 	
