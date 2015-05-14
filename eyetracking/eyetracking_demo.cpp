@@ -20,6 +20,7 @@
 
 static cv::CascadeClassifier face_cascade;
 static cv::CascadeClassifier eye_cascade;
+static bool loaded = false;
 
 static FANN::neural_net net;
 
@@ -27,16 +28,11 @@ static cv::Point click_pt;
 static cv::Point2d click_data;
 static bool bdown = false;
 
-static cv::Mat eye_data;
-
 static const double pixel_scale = 8.0;
 static const cv::Size eye_size = cv::Size(36, 26);
 
 static std::vector<double*> in_data;
 static std::vector<double*> out_data;
-
-std::pair<double, double> * cppOnNewFrame(cv::Mat * mat);
-int cppTrainOnFrame(cv::Mat *mat, double x, double y);
 
 // Callback function that simply prints the information to cout
 int print_callback(FANN::neural_net &net, FANN::training_data &train,
@@ -48,14 +44,14 @@ int print_callback(FANN::neural_net &net, FANN::training_data &train,
     return 0;
 }
 
-void update_net() {
+void update_net(cv::Mat * eye_data, double x, double y) {
 	double *in = new double[eye_size.area() / 4];
 	for (unsigned i = 0; i < eye_size.area() / 4; i++) {
-		in[i] = (eye_data.data[i] / 128.) - 1.;
+		in[i] = (eye_data->data[i] / 128.) - 1.;
 	}
 	double *out = new double[2];
-	out[0] = click_data.x;
-	out[1] = click_data.y;
+	out[0] = x;
+	out[1] = y;
 
 	in_data.push_back(in);
 	out_data.push_back(out);
@@ -234,238 +230,148 @@ cv::Rect resized(const cv::Rect& rect, const cv::Size& size) {
 
 int main(int argc, char** argv)
 {
-	// Load the cascade classifiers
-	// Make sure you point the XML files to the right path, or 
-	// just copy the files from [OPENCV_DIR]/data/haarcascades directory
-	face_cascade.load("haarcascades/haarcascade_frontalface_alt2.xml");
-	//eye_cascade.load("haarcascades/haarcascade_eye_tree_eyeglasses.xml");
-	eye_cascade.load("haarcascades/haarcascade_mcs_lefteye.xml");
+	return 0;
+}
 
-	// Open webcam
-	cv::VideoCapture cap(0);
+cv::Mat * processFrame(const cv::Mat *frame) {
+	static std::vector<cv::Mat> eye_tpls;
+	static std::vector<cv::Rect> face_bbs, eye_bbs;
 
-	// Check if everything is ok
-	if (face_cascade.empty() || eye_cascade.empty() || !cap.isOpened())
-		return 1;
+	static const double eye_thresh = 50;
 
-	/* Set video to 320x240
-	cap.set(CV_CAP_PROP_FRAME_WIDTH, 320);
-	cap.set(CV_CAP_PROP_FRAME_HEIGHT, 240);*/
+	static const bool do_zoom = true;
+	static const bool do_processing = true;
+	static const bool do_equalize = true;
+	static const bool do_threshold = false;
+	static const bool do_downsample = true;
+	static const bool do_gauss = false;
+	static const bool do_borders = false;
 
-	cv::namedWindow("video", 0);
-	cv::resizeWindow("video", 640*2, 480*2);
-	cv::moveWindow("video", (1920 - (640*2)) / 2, 0);
-	cv::setMouseCallback("video", MouseCallback);
+	if (frame->empty())
+		return NULL;
+	try {
+		// Flip the frame horizontally, Windows users might need this
+		//cv::flip(*frame, *frame, 1);
 
-	cv::Mat frame;
-	std::vector<cv::Mat> eye_tpls;
-	std::vector<cv::Rect> face_bbs, eye_bbs;
+		// Convert to grayscale and 
+		// adjust the image contrast using histogram equalization
+		cv::Mat gray;
+		cv::cvtColor(*frame, gray, CV_BGR2GRAY);
 
-	create_nn(net);
+		if (eye_bbs.size() == 0) {
+			// Detection stage
+			// Try to detect the face and the eye of the user
+			detectEyes(gray, face_bbs, eye_bbs, eye_tpls);
+		} else if (eye_bbs.size() > 0) {
+			for (int i = 0; i < eye_bbs.size(); i++) {
+				cv::Rect& eye_bb = eye_bbs[i];
+				cv::Mat& eye_tpl = eye_tpls[i];
 
-	int centered_Y = 0;
-	double eye_thresh = 50;
+				// Tracking stage with template matching
+				trackEye(gray, eye_tpl, eye_bb);
 
-	bool do_zoom = false;
-	bool do_threshold = true;
-	bool do_equalize = true;
-	bool do_actual_threshold = false;
-	bool do_downsample = true;
-	bool do_gauss = false;
-	bool do_borders = false;
-
-	int lastKey = 0;
-	do
-	{
-		lastKey = cv::waitKey(15);
-		cap >> frame;
-		if (frame.empty())
-			break;
-		try {
-			// Flip the frame horizontally, Windows users might need this
-			cv::flip(frame, frame, 1);
-
-			// Convert to grayscale and 
-			// adjust the image contrast using histogram equalization
-			cv::Mat gray;
-			cv::cvtColor(frame, gray, CV_BGR2GRAY);
-
-			if (eye_bbs.size() == 0 || lastKey == 'r')
-			{
-				// Detection stage
-				// Try to detect the face and the eye of the user
-				detectEyes(gray, face_bbs, eye_bbs, eye_tpls);
+				// Update template with new image
+				//eye_tpl = gray(eye_bb);
 			}
-			else if (lastKey == 'l')
-			{
-				// Do re-detection on area surrounding current bounding rectangle
-				cv::Rect large_rect = eye_bbs[0];
-				large_rect.x -= eye_bbs[0].width/2;
-				large_rect.y -= eye_bbs[0].height/2;
-				large_rect.width *= 2;
-				large_rect.height *= 2;
-
-				std::vector<cv::Rect> eyes;
-				std::vector<cv::Mat> tpls;
-				detectEyesInFace(gray(large_rect), eyes, tpls);
-				if (eyes.size())
-				{
-					eyes[0] += cv::Point(large_rect.x, large_rect.y);
-					eye_bbs[0] = eyes[0];
-					eye_tpls[0] = tpls[0];
-				}
-			}
-			else if (eye_bbs.size() > 0)
-			{
-				for (int i = 0; i < eye_bbs.size(); i++)
-				{
-					cv::Rect& eye_bb = eye_bbs[i];
-					cv::Mat& eye_tpl = eye_tpls[i];
-
-					// Tracking stage with template matching
-					trackEye(gray, eye_tpl, eye_bb);
-
-					// Update template with new image
-					//eye_tpl = gray(eye_bb);
-				}
-
-				// Draw bounding rectangle for the eye
-				if (!do_zoom)
-				{
-					for (auto& face_bb : face_bbs)
-					{
-						cv::rectangle(frame, face_bb, CV_RGB(0,0,255));
-						auto tmp = face_bb;
-						tmp.height /= 2;
-						cv::rectangle(frame, tmp, CV_RGB(0,0,255));
-						tmp.width /= 2;
-						cv::rectangle(frame, tmp, CV_RGB(0,0,255));
-					}
-
-					for (auto& eye_bb : eye_bbs)
-					{
-						cv::rectangle(frame, eye_bb, CV_RGB(0,255,0));
-					}
-
-					cv::Rect large_rect = eye_bbs[0];
-					large_rect.x -= eye_bbs[0].width/2;
-					large_rect.y -= eye_bbs[0].height/2;
-					large_rect.width *= 2;
-					large_rect.height *= 2;
-					cv::rectangle(frame, large_rect, CV_RGB(255, 0, 0));
-					cv::rectangle(frame, resized(eye_bbs[0], eye_size), CV_RGB(0,255,255));
-
-					cv::putText(frame, std::to_string(centered_Y - eye_bbs[0].y), cv::Point(50, 50), 1, 1, CV_RGB(255, 0, 255));
-				}
-			}
-
-			if (lastKey == ' ')
-				do_zoom = !do_zoom;
-			else if (lastKey == 'b')
-				do_borders = !do_borders;
-			else if (lastKey == 'c')
-				centered_Y = eye_bbs[0].y;
-			else if (lastKey == 'd')
-				do_downsample = !do_downsample;
-			else if (lastKey == 'e')
-				do_equalize = !do_equalize;
-			else if (lastKey == 'g')
-				do_gauss = !do_gauss;
-      else if (lastKey == 'm')
-        net_train();
-			else if (lastKey == 't')
-				do_actual_threshold = !do_actual_threshold;
-			else if (lastKey == ';')
-				do_threshold = !do_threshold;
-			else if (lastKey == '+')
-				eye_thresh += 1;
-			else if (lastKey == '-')
-				eye_thresh -= 1;
-
-			// Display video
-			if (eye_bbs.size() > 0 && eye_bbs[0].area() && do_zoom)
-			{
-				double scale_factor = pixel_scale;
-				cv::Mat zoomed = frame(resized(eye_bbs[0], eye_size));
-				if (do_threshold)
-				{
-					std::string processing_msg = "gray";
-					cv::cvtColor(zoomed, zoomed, CV_BGR2GRAY);
-
-					if (do_equalize) {
-						cv::equalizeHist(zoomed, zoomed);
-						processing_msg += "+equalizeHist";
-					}
-
-					if (do_actual_threshold) {
-						cv::threshold(zoomed, zoomed, eye_thresh, 255, cv::THRESH_BINARY);
-						processing_msg += "+threshold";
-					}
-
-					if (do_gauss) {
-						cv::GaussianBlur(zoomed, zoomed, cv::Size(9, 9), 2, 2);
-						processing_msg += "+gauss";
-					}
-
-					if (do_downsample) {
-						cv::resize(zoomed, zoomed, cv::Size(), 0.5, 0.5, cv::INTER_CUBIC);
-						scale_factor *= 2;
-						processing_msg += "+downsample";
-						eye_data = zoomed;
-						if (bdown)
-							update_net();
-					}
-
-					std::vector<std::vector<cv::Point>> contours;
-					if (do_borders) {
-						cv::Mat canny_out;
-						std::vector<cv::Vec4i> hierarchy;
-						cv::Canny(zoomed, canny_out, 100, 200);
-						cv::findContours(canny_out, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE);
-					}
-
-					cv::cvtColor(zoomed, zoomed, CV_GRAY2BGR);
-
-					for (int i = 0; i < contours.size(); i++) {
-						cv::drawContours(zoomed, contours, i, CV_RGB(0, 0, 255), 1);
-					}
-
-					cv::resize(zoomed, zoomed, cv::Size(), scale_factor, scale_factor, cv::INTER_NEAREST);
-
-					cv::putText(zoomed, processing_msg, cv::Point(20, 20), 1, 0.75, CV_RGB(255,0,0));
-					cv::putText(zoomed, std::to_string(eye_thresh), cv::Point(20, 40), 1, 1, CV_RGB(255, 0, 255));
-					cv::Point res = cv::Point(int(std::round(zoomed.cols / scale_factor)), int(std::round(zoomed.rows / scale_factor)));
-					cv::putText(zoomed, std::to_string(res.x) + " x " + std::to_string(res.y), cv::Point(20, 60), 1, 1, CV_RGB(0,0,255));
-
-					if (do_downsample) {
-						cv::putText(zoomed, std::to_string(click_data.x) + ", " + std::to_string(click_data.y), cv::Point(20, 80), 1, 1, CV_RGB(0,255,0));
-
-						double *in = new double[eye_size.area() / 4];
-						for (unsigned i = 0; i < eye_size.area() / 4; i++) {
-							in[i] = (eye_data.data[i] / 128.) - 1.;
-						}
-						double *out = net.run(in);
-						cv::putText(zoomed, std::to_string(out[0]) + ", " + std::to_string(out[1]), cv::Point(20, 100), 1, 1, CV_RGB(0,255,255));
-						cv::Point guesspt;
-						guesspt.x = (out[0] + 1.) * (eye_size.width / 2) * pixel_scale;
-						guesspt.y = (out[1] + 1.) * (eye_size.height / 2) * pixel_scale;
-						cv::circle(zoomed, guesspt, 1, CV_RGB(0,255,255), 1);
-						delete in;
-					}
-				} else {
-					cv::resize(zoomed, zoomed, cv::Size(), scale_factor, scale_factor, cv::INTER_NEAREST);
-				}
-				cv::imshow("video", zoomed);
-			}
-			else
-			{
-				cv::imshow("video", frame);
-			}
-		} catch (cv::Exception& e) {
-			std::cout << e.what() << std::endl;
 		}
-	} while (lastKey != 'q');
+
+		// Display video
+		if (eye_bbs.size() > 0 && eye_bbs[0].area() && do_zoom)
+		{
+			double scale_factor = pixel_scale;
+			cv::Mat *zoomed = new cv::Mat((*frame)(resized(eye_bbs[0], eye_size)));
+			if (do_processing)
+			{
+				std::string processing_msg = "gray";
+				cv::cvtColor(*zoomed, *zoomed, CV_BGR2GRAY);
+
+				if (do_equalize) {
+					cv::equalizeHist(*zoomed, *zoomed);
+					processing_msg += "+equalizeHist";
+				}
+
+				if (do_threshold) {
+					cv::threshold(*zoomed, *zoomed, eye_thresh, 255, cv::THRESH_BINARY);
+					processing_msg += "+threshold";
+				}
+
+				if (do_gauss) {
+					cv::GaussianBlur(*zoomed, *zoomed, cv::Size(9, 9), 2, 2);
+					processing_msg += "+gauss";
+				}
+
+				if (do_downsample) {
+					cv::resize(*zoomed, *zoomed, cv::Size(), 0.5, 0.5, cv::INTER_CUBIC);
+					scale_factor *= 2;
+					processing_msg += "+downsample";
+				}
+
+				// cv::cvtColor(zoomed, zoomed, CV_GRAY2BGR);
+
+				/*for (int i = 0; i < contours.size(); i++) {
+					cv::drawContours(zoomed, contours, i, CV_RGB(0, 0, 255), 1);
+				}
+
+				cv::resize(zoomed, zoomed, cv::Size(), scale_factor, scale_factor, cv::INTER_NEAREST);
+
+				cv::putText(zoomed, processing_msg, cv::Point(20, 20), 1, 0.75, CV_RGB(255,0,0));
+				cv::putText(zoomed, std::to_string(eye_thresh), cv::Point(20, 40), 1, 1, CV_RGB(255, 0, 255));
+				cv::Point res = cv::Point(int(std::round(zoomed.cols / scale_factor)), int(std::round(zoomed.rows / scale_factor)));
+				cv::putText(zoomed, std::to_string(res.x) + " x " + std::to_string(res.y), cv::Point(20, 60), 1, 1, CV_RGB(0,0,255));*/
+				return zoomed;
+			}
+		}
+	} catch (cv::Exception&) {
+		return NULL;
+	}
+	return NULL;
+}
+
+int cppTrainOnFrame(const cv::Mat *frame, double x, double y) {
+	if (!loaded) {
+		// Load the cascade classifiers
+		// Make sure you point the XML files to the right path, or 
+		// just copy the files from [OPENCV_DIR]/data/haarcascades directory
+		face_cascade.load("haarcascades/haarcascade_frontalface_alt2.xml");
+		//eye_cascade.load("haarcascades/haarcascade_eye_tree_eyeglasses.xml");
+		eye_cascade.load("haarcascades/haarcascade_mcs_lefteye.xml");
+
+		// Check if everything is ok
+		if (face_cascade.empty() || eye_cascade.empty())
+			return 1;
+
+		create_nn(net);
+
+		loaded = true;
+	}
+
+	cv::Mat *zoomed = processFrame(frame);
+	if (!zoomed)
+		return -1;
+
+	update_net(zoomed, x, y);
+
+	delete zoomed;
 
 	return 0;
+}
+
+cv::Point2d cppOnNewFrame(cv::Mat* frame) {
+	//cv::putText(zoomed, std::to_string(click_data.x) + ", " + std::to_string(click_data.y), cv::Point(20, 80), 1, 1, CV_RGB(0,255,0));
+
+	cv::Mat *eye_data = processFrame(frame);
+
+	double *in = new double[eye_size.area() / 4];
+	for (unsigned i = 0; i < eye_size.area() / 4; i++) {
+		in[i] = (eye_data->data[i] / 128.) - 1.;
+	}
+	double *out = net.run(in);
+	//cv::putText(zoomed, std::to_string(out[0]) + ", " + std::to_string(out[1]), cv::Point(20, 100), 1, 1, CV_RGB(0,255,255));
+	cv::Point2d outpt(out[0], out[1]);
+	//cv::circle(zoomed, guesspt, 1, CV_RGB(0,255,255), 1);
+	delete in;
+	delete eye_data;
+
+	return outpt;
 }
 
