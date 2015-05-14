@@ -18,22 +18,25 @@
 #include <doublefann.h>
 #include <fann_cpp.h>
 
-cv::CascadeClassifier face_cascade;
-cv::CascadeClassifier eye_cascade;
+static cv::CascadeClassifier face_cascade;
+static cv::CascadeClassifier eye_cascade;
 
-FANN::neural_net net;
+static FANN::neural_net net;
 
-cv::Point click_pt;
-cv::Point2d click_data;
-bool bdown = false;
+static cv::Point click_pt;
+static cv::Point2d click_data;
+static bool bdown = false;
 
-cv::Mat eye_data;
+static cv::Mat eye_data;
 
-const double pixel_scale = 8.0;
-const cv::Size eye_size = cv::Size(36, 26);
-const unsigned burst = 8;
+static const double pixel_scale = 8.0;
+static const cv::Size eye_size = cv::Size(36, 26);
 
-unsigned bursti = 0;
+static std::vector<double*> in_data;
+static std::vector<double*> out_data;
+
+std::pair<double, double> * cppOnNewFrame(cv::Mat * mat);
+int cppTrainOnFrame(cv::Mat *mat, double x, double y);
 
 // Callback function that simply prints the information to cout
 int print_callback(FANN::neural_net &net, FANN::training_data &train,
@@ -46,16 +49,6 @@ int print_callback(FANN::neural_net &net, FANN::training_data &train,
 }
 
 void update_net() {
-	static unsigned epoch = 0;
-	if (epoch >= 9 * burst)
-		return;
-	if (bursti >= burst)
-		return;
-	std::cout << bursti << std::endl;
-
-	static double **in_data = new double*[9 * burst];
-	static double **out_data = new double*[9 * burst];
-
 	double *in = new double[eye_size.area() / 4];
 	for (unsigned i = 0; i < eye_size.area() / 4; i++) {
 		in[i] = (eye_data.data[i] / 128.) - 1.;
@@ -64,21 +57,41 @@ void update_net() {
 	out[0] = click_data.x;
 	out[1] = click_data.y;
 
-	in_data[epoch] = in;
-	out_data[epoch] = out;
-	epoch++;
-	bursti++;
+	in_data.push_back(in);
+	out_data.push_back(out);
+}
 
-	if (epoch == 9 * burst) {
-		const float desired_error = 0.001f;
-		const unsigned int max_iterations = 300000;
-		const unsigned int iterations_between_reports = 1000;
+void net_train() {
+	const float desired_error = 0.001f;
+	const unsigned int max_iterations = 250;// 300000;
+	const unsigned int iterations_between_reports = 50; // 1000
 
-		FANN::training_data data;
-		net.set_callback(print_callback, NULL);
-		data.set_train_data(9 * burst, eye_size.area() / 4, in_data, 2, out_data);
-		net.train_on_data(data, max_iterations, iterations_between_reports, desired_error);
-	}
+	FANN::training_data data;
+	net.set_callback(print_callback, NULL);
+	data.set_train_data(in_data.size(), eye_size.area() / 4, in_data.data(), 2, out_data.data());
+	net.init_weights(data);
+	net.train_on_data(data, max_iterations, iterations_between_reports, desired_error);
+	data.save_train("data.fann");
+}
+
+void create_nn(FANN::neural_net& net) {
+	const float learning_rate = 0.7f;
+    const unsigned int num_layers = 4;
+    const unsigned int num_input = eye_size.area() / 4; // because we'll be downsizing
+    const unsigned int num_hidden = 8;
+    const unsigned int num_output = 2;
+
+	net.create_standard(num_layers, num_input, num_hidden, num_hidden, num_output);
+
+    net.set_learning_rate(learning_rate);
+
+    net.set_activation_steepness_hidden(1.0);
+    net.set_activation_steepness_output(1.0);
+    
+    net.set_activation_function_hidden(FANN::SIGMOID_SYMMETRIC_STEPWISE);
+    net.set_activation_function_output(FANN::SIGMOID_SYMMETRIC_STEPWISE);
+
+	//net.set_training_algorithm(FANN::TRAIN_INCREMENTAL);
 }
 
 void MouseCallback(int event, int x, int y, int flags, void* userdata)
@@ -96,13 +109,12 @@ void MouseCallback(int event, int x, int y, int flags, void* userdata)
 		click_data.y /= (eye_size.height / 2.0);
 		click_data.y -= 1.0;
 
-		if ((event == cv::EVENT_LBUTTONDOWN || bdown) && bursti < burst) {
+		if (event == cv::EVENT_LBUTTONDOWN) {
 			bdown = true;
 		}
 	}
 	if (event == cv::EVENT_LBUTTONUP) {
 		bdown = false;
-		bursti = 0;
 	}
 }
 
@@ -218,26 +230,6 @@ cv::Rect resized(const cv::Rect& rect, const cv::Size& size) {
 	nr -= cv::Point(nr.width / 2, nr.height / 2);
 
 	return nr;
-}
-
-void create_nn(FANN::neural_net& net) {
-	const float learning_rate = 0.7f;
-    const unsigned int num_layers = 3;
-    const unsigned int num_input = eye_size.area() / 4; // because we'll be downsizing
-    const unsigned int num_hidden = 8;
-    const unsigned int num_output = 2;
-
-	net.create_standard(num_layers, num_input, num_hidden, num_output);
-
-    net.set_learning_rate(learning_rate);
-
-    net.set_activation_steepness_hidden(1.0);
-    net.set_activation_steepness_output(1.0);
-    
-    net.set_activation_function_hidden(FANN::SIGMOID_SYMMETRIC_STEPWISE);
-    net.set_activation_function_output(FANN::SIGMOID_SYMMETRIC_STEPWISE);
-
-	//net.set_training_algorithm(FANN::TRAIN_INCREMENTAL);
 }
 
 int main(int argc, char** argv)
@@ -379,6 +371,8 @@ int main(int argc, char** argv)
 				do_equalize = !do_equalize;
 			else if (lastKey == 'g')
 				do_gauss = !do_gauss;
+      else if (lastKey == 'm')
+        net_train();
 			else if (lastKey == 't')
 				do_actual_threshold = !do_actual_threshold;
 			else if (lastKey == ';')
