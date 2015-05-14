@@ -15,15 +15,17 @@ import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
 import com.example.testerapplication.display.CircleView;
 
-public class CalibrateFragment extends Fragment implements CvCameraViewListener2 {
+public class CalibrateFragment extends Fragment implements CvCameraViewListener2, OnTouchListener {
 
-	private Mat                    mRgba;
+	private Mat                    mGrayT;
 	private Mat                    mGray;
     public CameraBridgeViewBase   mOpenCvCameraView = null;
     private double curX;
@@ -54,6 +56,7 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 		mOpenCvCameraView.setCameraIndex(1);
 		this.frameCount = 0;
 		threadPool = Executors.newFixedThreadPool(100);
+		rootView.setOnTouchListener(this);
 		return rootView;
 	}
 	
@@ -63,7 +66,7 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 		if (ra.connected) {
 			enableCameraView();
 		}
-		calibrateTopLeft();
+//		calibrateTopLeft();
 	}
 	
 	public void enableCameraView() {
@@ -81,13 +84,13 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 	@Override
 	public void onCameraViewStarted(int width, int height) {
 	    mGray = new Mat();
-        mRgba = new Mat();		
+        mGrayT = new Mat();		
 	}
 
 	@Override
 	public void onCameraViewStopped() {
 		mGray.release();
-		mRgba.release();		
+		mGrayT.release();		
 	}
 	
 	private void calibrateTopLeft() {
@@ -146,48 +149,56 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 		rl.addView(cv);
 	}
 	
-	@Override
-	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-		// TODO Auto-generated method stub
-		if (complete) {			
-			ra.runOnUiThread(new Runnable() {
-				@Override
-				public void run() {
-					disableCameraView();
-					ra.enterWebMode();
-				}
-			});
-			return null;		
-		} else {
-			Mat gray = inputFrame.gray();
-			Mat grayT = gray.t();
-			Core.flip(gray.t(), grayT, -1);
-			Imgproc.resize(grayT, grayT, gray.size());
-			gray.release();
-			if (frameCount > CALIBRATE_FRAME_COUNT) {
-				frameCount = 0;
-				setNextCalibratePosition(getActivity(), getView());
-			}
-			
-			
-			threadPool.execute(new CalibratePositionThread(curX, curY, grayT));
-			frameCount++;
-			
-			return grayT;
-		}
+	public double interpolateX(double x, View v) {
+		double right = v.getRight();
+		double left = v.getLeft();
+		return (x/(right-left)) * 2 -1;
 	}
 	
-	private void setNextCalibratePosition(Context context, View rootView) {
-		if (curX == -1 && curY == -1) {
-			calibrateTopRight();
-		} else if (curX == 1 && curY == -1) {
-			calibrateBottomLeft(); 
-		} else if (curX == -1 && curY == 1) {
-			calibrateBottomRight();
-		} else {
-			complete = true;
-		}
+	public double interpolateY(double y, View v) {
+		double bottom = v.getBottom();
+		double top = v.getTop();
+		return (y/(bottom-top)) * 2 -1;
 	}
+
+	@Override
+	public boolean onTouch(View v, MotionEvent event) {
+		drawCircle(ra, v, event.getX(), event.getY());
+		curX = interpolateX(event.getX(), v);
+		curY = interpolateY(event.getY(), v);
+		return true;
+	}
+	
+	
+	@Override
+	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
+			mGray = inputFrame.gray();
+			Mat temp1 = mGray.t();
+			mGrayT = mGray.t();
+			Core.flip(temp1,  mGrayT,  -1);
+			Imgproc.resize(mGrayT, mGray, mGray.size());
+			temp1.release();
+			mGrayT.release();
+			threadPool.execute(new CalibratePositionThread(curX, curY, mGray));
+			return mGray;
+//		}
+	}
+
+
+	
+//	private void setNextCalibratePosition(Context context, View rootView) {
+//		if (curX == -1 && curY == -1) {
+//			calibrateTopRight();
+//		} else if (curX == 1 && curY == -1) {
+//			calibrateBottomLeft(); 
+//		} else if (curX == -1 && curY == 1) {
+//			calibrateBottomRight();
+//		} else {
+//			complete = true;
+//		}
+//	}
+	
+	
 
 	
 }
