@@ -21,7 +21,9 @@ public class NativeInterface {
 		if (resultCode == 1) {
 			return dp;
 		} else {
-			return null;
+			System.err.println("Try catch error");
+			dp = new DoublePoint(-1, -1);
+			return dp;
 		}
 	}
 	

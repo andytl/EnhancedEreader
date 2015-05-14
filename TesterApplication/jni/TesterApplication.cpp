@@ -37,7 +37,12 @@ extern "C" {
 	{
 		//TODO: translation from java to c, then call sunjay's code
 		cv::Mat *cMat = (cv::Mat *)mat;
-		std::pair<double, double> *resultPt = cppOnNewFrame(cMat);
+		std::pair<double, double> *resultPt;
+		try {
+		resultPt = cppOnNewFrame(cMat);
+		} catch (cv::Exception &e) {
+			return -1;
+		}
 		jclass cls = env->GetObjectClass(dp);
 		jfieldID x = env->GetFieldID(cls, "x", "D");
 		jfieldID y = env->GetFieldID(cls, "y", "D");

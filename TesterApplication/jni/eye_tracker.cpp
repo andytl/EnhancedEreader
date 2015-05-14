@@ -25,73 +25,84 @@ void trackEye(cv::Mat* im, cv::Mat& tpl, cv::Rect& rect);
 
 std::pair<double, double> *cppOnNewFrame(cv::Mat *mat)
 {
-	if (eye_bbs.size() == 0)
-	{
-		// Detection stage
-		// Try to detect the face and the eye of the user
-		bool r = detectEyes(mat, face_bbs, eye_bbs, eye_tpls);
-		if (r) {
-			return new std::pair<double, double>(-1, -1);
-		} else {
-			return new std::pair<double, double>(1, 1);
-		}
-		if (eye_bbs.size() == 0) {
-			return new std::pair<double, double>(-.5, -.5);
-		} else {
-			cv::Rect& eye = eye_bbs[0];
-			return new std::pair<double, double>(eye.x + eye.width/2, eye.y + eye.height/2 );
-		}
-	}
-	else if (eye_bbs.size() > 0)
-	{
-		for (int i = 0; i < eye_bbs.size(); i++)
+	try {
+		if (eye_bbs.size() == 0)
 		{
-			cv::Rect& eye_bb = eye_bbs[i];
-			cv::Mat& eye_tpl = eye_tpls[i];
-
-			// Tracking stage with template matching
-			trackEye(mat, eye_tpl, eye_bb);
-
-			// Update template with new image
-			eye_tpl = (*mat)(eye_bb);
+			// Detection stage
+			// Try to detect the face and the eye of the user
+			bool r = detectEyes(mat, face_bbs, eye_bbs, eye_tpls);
+	//		if (r) {
+	//			return new std::pair<double, double>(10, 10);
+	//		} else {
+	//			return new std::pair<double, double>(0, 0);
+	//		}
+			if (eye_bbs.size() == 0) {
+				return new std::pair<double, double>(0, 0);
+			} else {
+				cv::Rect& eye = eye_bbs[0];
+	//			return new std::pair<double, double>(eye.x + eye.width/2, eye.y + eye.height/2 );
+				return new std::pair<double, double>(500, 500);
+			}
 		}
-
-		// Draw bounding rectangle for the eye
-		if (true)
+		else if (eye_bbs.size() > 0)
 		{
-			// draw rect around face
-//			for (auto& face_bb : face_bbs)
-//			{
-//				cv::rectangle(*mat, face_bb, CV_RGB(0,0,255));
-//				auto tmp = face_bb;
-//				tmp.height /= 2;
-//				cv::rectangle(*mat, tmp, CV_RGB(0,0,255));
-//			}
-
-			for (auto& eye_bb : eye_bbs)
+			for (int i = 0; i < eye_bbs.size(); i++)
 			{
-//				draw rect around eye
-//				cv::rectangle(*mat, eye_bb, CV_RGB(0,255,0));
-				std::pair<double, double> *sp = new std::pair<double, double>;
-				sp->first = eye_bb.x + eye_bb.width/2;
-				sp->second = eye_bb.y + eye_bb.height/2;
-				return sp;
+				cv::Rect& eye_bb = eye_bbs[i];
+				cv::Mat& eye_tpl = eye_tpls[i];
 
+				// Tracking stage with template matching
+				trackEye(mat, eye_tpl, eye_bb);
+
+				// Update template with new image
+				eye_tpl = (*mat)(eye_bb);
 			}
 
+			// Draw bounding rectangle for the eye
+			if (true)
+			{
+				// draw rect around face
+	//			for (auto& face_bb : face_bbs)
+	//			{
+	//				cv::rectangle(*mat, face_bb, CV_RGB(0,0,255));
+	//				auto tmp = face_bb;
+	//				tmp.height /= 2;
+	//				cv::rectangle(*mat, tmp, CV_RGB(0,0,255));
+	//			}
 
-//			cv::Rect large_rect = eye_bbs[0];
-//			large_rect.x -= eye_bbs[0].width;
-//			large_rect.y -= eye_bbs[0].height;
-//			large_rect.width *= 3;
-//			large_rect.height *= 3;
-//			cv::rectangle(*mat, large_rect, CV_RGB(255, 0, 0));
+				for (auto& eye_bb : eye_bbs)
+				{
+	//				draw rect around eye
+	//				cv::rectangle(*mat, eye_bb, CV_RGB(0,255,0));
+					std::pair<double, double> *sp = new std::pair<double, double>;
+					sp->first = eye_bb.x + eye_bb.width/2;
+					sp->second = eye_bb.y + eye_bb.height/2;
+					sp->first = -1000;
+					sp->second = -1000;
+					return sp;
 
-//			cv::putText(*mat, std::to_string(centered_Y - eye_bbs[0].y), cv::Point(50, 50), 1, 2, CV_RGB(255, 0, 255));
+				}
+
+
+	//			cv::Rect large_rect = eye_bbs[0];
+	//			large_rect.x -= eye_bbs[0].width;
+	//			large_rect.y -= eye_bbs[0].height;
+	//			large_rect.width *= 3;
+	//			large_rect.height *= 3;
+	//			cv::rectangle(*mat, large_rect, CV_RGB(255, 0, 0));
+
+	//			cv::putText(*mat, std::to_string(centered_Y - eye_bbs[0].y), cv::Point(50, 50), 1, 2, CV_RGB(255, 0, 255));
+			}
 		}
+
+	} catch (cv::Exception &e) {
+		std::pair<double, double> *sp =  new std::pair<double, double>;
+		sp->first = -1;
+		sp->second = -1;
+		eye_bbs.clear();
+		face_bbs.clear();
+		return sp;
 	}
-
-
 
 //	return new std::pair<double, double>(-.5, -.5);
 }
