@@ -15,8 +15,8 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/objdetect/objdetect.hpp>
 
-#include <doublefann.h>
-#include <fann_cpp.h>
+#include "doublefann.h"
+#include "fann_cpp.h"
 
 static cv::CascadeClassifier face_cascade;
 static cv::CascadeClassifier eye_cascade;
@@ -34,16 +34,6 @@ static const cv::Size eye_size = cv::Size(36, 26);
 static std::vector<double*> in_data;
 static std::vector<double*> out_data;
 
-int setupNativeCode(std::string face, std::string eye)
-{
-	face_cascade.load(face);
-	eye_cascade.load(eye);
-	// Check if everything is ok
-	if (face_cascade.empty() || eye_cascade.empty()) {
-		return 0;
-	}
-	return 1;
-}
 
 
 // Callback function that simply prints the information to cout
@@ -259,8 +249,9 @@ cv::Mat * processFrame(const cv::Mat *frame) {
 	static const bool do_gauss = false;
 	static const bool do_borders = false;
 
-	if (frame->empty())
+	if (frame->empty()) {
 		return NULL;
+	}
 	try {
 		// Flip the frame horizontally, Windows users might need this
 		//cv::flip(*frame, *frame, 1);
@@ -339,23 +330,38 @@ cv::Mat * processFrame(const cv::Mat *frame) {
 	return NULL;
 }
 
-int cppTrainOnFrame(const cv::Mat *frame, double x, double y) {
-	if (!loaded) {
-		// Load the cascade classifiers
-		// Make sure you point the XML files to the right path, or
-		// just copy the files from [OPENCV_DIR]/data/haarcascades directory
-		face_cascade.load("haarcascades/haarcascade_frontalface_alt2.xml");
-		//eye_cascade.load("haarcascades/haarcascade_eye_tree_eyeglasses.xml");
-		eye_cascade.load("haarcascades/haarcascade_mcs_lefteye.xml");
-
-		// Check if everything is ok
-		if (face_cascade.empty() || eye_cascade.empty())
-			return 1;
-
-		create_nn(net);
-
-		loaded = true;
+int setupNativeCode(std::string face, std::string eye)
+{
+	face_cascade.load(face);
+	eye_cascade.load(eye);
+	// Check if everything is ok
+	if (face_cascade.empty() || eye_cascade.empty()) {
+		loaded = 0;
+		return 0;
 	}
+	create_nn(net);
+
+	loaded = 1;
+	return 1;
+}
+
+int cppTrainOnFrame(const cv::Mat *frame, double x, double y) {
+//	if (!loaded) {
+//		// Load the cascade classifiers
+//		// Make sure you point the XML files to the right path, or
+//		// just copy the files from [OPENCV_DIR]/data/haarcascades directory
+//		face_cascade.load("haarcascades/haarcascade_frontalface_alt2.xml");
+//		//eye_cascade.load("haarcascades/haarcascade_eye_tree_eyeglasses.xml");
+//		eye_cascade.load("haarcascades/haarcascade_mcs_lefteye.xml");
+//
+//		// Check if everything is ok
+//		if (face_cascade.empty() || eye_cascade.empty())
+//			return 1;
+//
+//		create_nn(net);
+//
+//		loaded = true;
+//	}
 
 	cv::Mat *zoomed = processFrame(frame);
 	if (!zoomed)

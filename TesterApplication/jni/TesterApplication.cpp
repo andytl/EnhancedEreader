@@ -37,9 +37,12 @@ extern "C" {
 	{
 		//TODO: translation from java to c, then call sunjay's code
 		cv::Mat *cMat = (cv::Mat *)mat;
-		std::pair<double, double> *resultPt;
+		std::pair<double, double> *resultPt = new std::pair<double, double>(1337,1337);
 		try {
-		resultPt = cppOnNewFrame(cMat);
+			cv::Point2d p2d = cppOnNewFrame(cMat);
+			resultPt->first = p2d.x;
+			resultPt->second = p2d.y;
+			//resultPt = new std::pair<double, double>(1337,1337);
 		} catch (cv::Exception &e) {
 			return -1;
 		}
@@ -56,6 +59,7 @@ extern "C" {
 		(JNIEnv *env, jobject obj, jlong mat, jdouble x, jdouble y)
 	{
 		cv::Mat *cMat = (cv::Mat *)mat;
+//		int resultCode = 0;
 		int resultCode = cppTrainOnFrame(cMat, x, y);
 		return resultCode;
 	}

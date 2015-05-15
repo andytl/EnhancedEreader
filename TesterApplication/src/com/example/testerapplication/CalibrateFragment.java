@@ -32,7 +32,7 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
     private double curY;
     private double frameCount;
 	private static final int CALIBRATE_FRAME_COUNT = 100;
-	private boolean complete = false;
+	private boolean validFrame = false;
 	private ReaderActivity ra;
     private ExecutorService threadPool;
 
@@ -92,56 +92,7 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 		mGray.release();
 		mGrayT.release();		
 	}
-	
-	private void calibrateTopLeft() {
-		curX = -1;
-		curY = -1;
-		final View rootView = getView();
-		ra.runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				drawCircle(ra, rootView, rootView.getLeft(), rootView.getTop());
-			}
-		});
-		
-	}
-	
-	private void calibrateTopRight()  {
-		curX = 1;
-		curY = -1;
-		final View rootView = getView();
-		ra.runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				drawCircle(ra, rootView, rootView.getRight()-10, rootView.getTop()+10);
-			}
-		});
-	}
-	
-	private void calibrateBottomLeft()  {
-		curX = -1;
-		curY = 1;
-		final View rootView = getView();
-		ra.runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				drawCircle(ra, rootView, rootView.getLeft()+10, rootView.getBottom()-10);
-			}
-		});
-	}
-	
-	private void calibrateBottomRight() {
-		curX = 1;
-		curY = 1;
-		final View rootView = getView();
-		ra.runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				drawCircle(ra, rootView, rootView.getRight()-10, rootView.getBottom()-10);
-			}
-		});
-	}
-	
+
 	private void drawCircle(Context context, View rootView, double x, double y) {
 		RelativeLayout rl = (RelativeLayout) rootView.findViewById(R.id.calibrate_circle_overlay);
 		CircleView cv = new CircleView(context, (int)x, (int)y, 100, 0xFFFF0000);
@@ -166,6 +117,7 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 		drawCircle(ra, v, event.getX(), event.getY());
 		curX = interpolateX(event.getX(), v);
 		curY = interpolateY(event.getY(), v);
+		validFrame = true;
 		return true;
 	}
 	
@@ -179,7 +131,10 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 			Imgproc.resize(mGrayT, mGray, mGray.size());
 			temp1.release();
 			mGrayT.release();
-			threadPool.execute(new CalibratePositionThread(curX, curY, mGray));
+			if (validFrame) {
+				validFrame = false;
+				threadPool.execute(new CalibratePositionThread(curX, curY, mGray));
+			}
 			return mGray;
 //		}
 	}

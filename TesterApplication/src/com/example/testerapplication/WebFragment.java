@@ -9,12 +9,14 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.core.Core;
 import org.opencv.core.CvException;
 import org.opencv.core.Mat;
+import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
 
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -153,4 +155,12 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 		return mGray;
 		
 	}
+	
+//	private Rect getCropArea(Mat m) {
+//		int width = m.cols();
+//		int height = m.rows();
+//		if (width > height) {
+//			
+//		}
+//	}
 }
