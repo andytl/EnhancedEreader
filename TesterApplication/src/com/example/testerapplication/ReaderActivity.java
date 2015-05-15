@@ -140,11 +140,11 @@ public class ReaderActivity extends Activity {
 
 		if (currentUser == null) {
 			getFragmentManager().beginTransaction()
-				.add(R.id.container,  new LoginFragment(), LOGIN_MODE)
+				.replace(R.id.container,  new LoginFragment(), LOGIN_MODE)
 				.commit();
 		} else {
 			getFragmentManager().beginTransaction()
-				.add(R.id.container, new WebFragment(), WEB_MODE)
+				.replace(R.id.container, new WebFragment(), WEB_MODE)
 				.commit();
 		}
 	}

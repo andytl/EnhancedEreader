@@ -259,7 +259,9 @@ cv::Mat * processFrame(const cv::Mat *frame) {
 		// Convert to grayscale and
 		// adjust the image contrast using histogram equalization
 		cv::Mat gray;
-		cv::cvtColor(*frame, gray, CV_BGR2GRAY);
+		//TODO: Ask sunjay why????????
+//		cv::cvtColor(*frame, gray, CV_BGR2GRAY);
+		gray = *frame;
 
 		if (eye_bbs.size() == 0) {
 			// Detection stage
@@ -283,10 +285,13 @@ cv::Mat * processFrame(const cv::Mat *frame) {
 		{
 			double scale_factor = pixel_scale;
 			cv::Mat *zoomed = new cv::Mat((*frame)(resized(eye_bbs[0], eye_size)));
+
 			if (do_processing)
 			{
 				std::string processing_msg = "gray";
-				cv::cvtColor(*zoomed, *zoomed, CV_BGR2GRAY);
+				// TODO: talk to sunjay about if we are in the correct color mode
+//				cv::cvtColor(*zoomed, *zoomed, CV_BGR2GRAY);
+
 
 				if (do_equalize) {
 					cv::equalizeHist(*zoomed, *zoomed);
@@ -298,17 +303,16 @@ cv::Mat * processFrame(const cv::Mat *frame) {
 					processing_msg += "+threshold";
 				}
 
+
 				if (do_gauss) {
 					cv::GaussianBlur(*zoomed, *zoomed, cv::Size(9, 9), 2, 2);
 					processing_msg += "+gauss";
 				}
-
 				if (do_downsample) {
 					cv::resize(*zoomed, *zoomed, cv::Size(), 0.5, 0.5, cv::INTER_CUBIC);
 					scale_factor *= 2;
 					processing_msg += "+downsample";
 				}
-
 				// cv::cvtColor(zoomed, zoomed, CV_GRAY2BGR);
 
 				/*for (int i = 0; i < contours.size(); i++) {
@@ -325,6 +329,8 @@ cv::Mat * processFrame(const cv::Mat *frame) {
 			}
 		}
 	} catch (cv::Exception&) {
+		std::string sss = NULL;
+		sss.c_str();
 		return NULL;
 	}
 	return NULL;
@@ -397,7 +403,9 @@ cv::Point2d cppOnNewFrame(cv::Mat* frame) {
 
 
 
-
+void forcedFail() {
+	int i = *(int*)0x00;
+}
 
 
 

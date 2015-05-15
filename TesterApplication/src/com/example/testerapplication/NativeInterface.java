@@ -31,6 +31,8 @@ public class NativeInterface {
 		int resultCode = nativeTrainOnFrame(mat.nativeObj, x, y);
 		if (resultCode == -1) {
 			System.err.println("Train on Frame Failed");
+		} else {
+			System.err.println("SUCCESSS!!!! OH My GODDDDDD");
 		}
 	}
 	
