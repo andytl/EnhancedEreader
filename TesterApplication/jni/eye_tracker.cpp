@@ -26,6 +26,8 @@ static cv::CascadeClassifier face_cascade;
 static cv::CascadeClassifier eye_cascade;
 static bool loaded = false;
 
+static bool printmethods = false;
+
 static FANN::neural_net net;
 
 static cv::Point click_pt;
@@ -64,7 +66,7 @@ void update_net(cv::Mat * eye_data, double x, double y) {
 }
 
 void net_train() {
-	LOGD("net_train -- enter");
+	if (printmethods) LOGD("net_train -- enter");
 	const float desired_error = 0.001f;
 	const unsigned int max_iterations = 250;// 300000;
 	const unsigned int iterations_between_reports = 50; // 1000
@@ -75,11 +77,11 @@ void net_train() {
 	net.init_weights(data);
 	net.train_on_data(data, max_iterations, iterations_between_reports, desired_error);
 	data.save_train("data.fann");
-	LOGD("net train -- exit");
+	if (printmethods) LOGD("net train -- exit");
 }
 
 void create_nn(FANN::neural_net& net) {
-	LOGD("create nn -- enter");
+	if (printmethods) LOGD("create nn -- enter");
 	const float learning_rate = 0.7f;
     const unsigned int num_layers = 4;
     const unsigned int num_input = eye_size.area() / 4; // because we'll be downsizing
@@ -98,12 +100,12 @@ void create_nn(FANN::neural_net& net) {
 
 	//net.set_training_algorithm(FANN::TRAIN_INCREMENTAL);
 
-    LOGD("create nn -- exit");
+    if (printmethods) LOGD("create nn -- exit");
 }
 
 void MouseCallback(int event, int x, int y, int flags, void* userdata)
 {
-	LOGD("MouseCallback -- enter");
+	if (printmethods) LOGD("MouseCallback -- enter");
 	if (event == cv::EVENT_MOUSEMOVE || event == cv::EVENT_LBUTTONDOWN || event == cv::EVENT_LBUTTONDBLCLK || bdown)
 	{
 		click_pt.x = x;
@@ -124,7 +126,7 @@ void MouseCallback(int event, int x, int y, int flags, void* userdata)
 	if (event == cv::EVENT_LBUTTONUP) {
 		bdown = false;
 	}
-	LOGD("MouseCallback -- exit");
+	if (printmethods) LOGD("MouseCallback -- exit");
 }
 
 /**
@@ -136,7 +138,7 @@ void MouseCallback(int event, int x, int y, int flags, void* userdata)
  */
 bool detectEyesInFace(cv::Mat& im, std::vector<cv::Rect>& eyes, std::vector<cv::Mat>& tpls)
 {
-	LOGD("detectEyesInFace -- enter");
+	if (printmethods) LOGD("detectEyesInFace -- enter");
 	const static int scale = 1;
 
 	eyes.clear();
@@ -151,7 +153,7 @@ bool detectEyesInFace(cv::Mat& im, std::vector<cv::Rect>& eyes, std::vector<cv::
 	{
 		tpls.push_back(im(eye));
 	}
-	LOGD("detectEyesInFace -- exit");
+	if (printmethods) LOGD("detectEyesInFace -- exit");
 	return true;
 }
 
@@ -165,7 +167,7 @@ bool detectEyesInFace(cv::Mat& im, std::vector<cv::Rect>& eyes, std::vector<cv::
 bool detectEyes(cv::Mat& im, std::vector<cv::Rect>& faces, std::vector<cv::Rect>& eyes, std::vector<cv::Mat>& tpls)
 {
 	const static int scale = 1;
-	LOGD("Detect Eyes -- enter");
+	if (printmethods) LOGD("Detect Eyes -- enter");
 	faces.clear();
 	eyes.clear();
 	tpls.clear();
@@ -195,7 +197,7 @@ bool detectEyes(cv::Mat& im, std::vector<cv::Rect>& faces, std::vector<cv::Rect>
 	{
 		tpls.push_back(im(eye));
 	}
-	LOGD("Detect Eyes -- exit");
+	if (printmethods) LOGD("Detect Eyes -- exit");
 
 	return true;
 }
@@ -209,7 +211,7 @@ bool detectEyes(cv::Mat& im, std::vector<cv::Rect>& faces, std::vector<cv::Rect>
  */
 void trackEye(cv::Mat& im, cv::Mat& tpl, cv::Rect& rect)
 {
-	LOGD("Track Eyes -- enter");
+	if (printmethods) LOGD("Track Eyes -- enter");
 
 	cv::Rect window = rect;
 	window.x -= rect.width/2;
@@ -237,17 +239,17 @@ void trackEye(cv::Mat& im, cv::Mat& tpl, cv::Rect& rect)
 	}
 	else
 		rect.x = rect.y = rect.width = rect.height = 0;
-	LOGD("Track Eyes -- exit");
+	if (printmethods) LOGD("Track Eyes -- exit");
 }
 
 cv::Rect resized(const cv::Rect& rect, const cv::Size& size) {
-	LOGD("resized -- enter");
+	if (printmethods) LOGD("resized -- enter");
 	cv::Rect nr = rect;
 	nr += cv::Point(nr.width / 2, nr.height / 2);
 	nr.width = size.width;
 	nr.height = size.height;
 	nr -= cv::Point(nr.width / 2, nr.height / 2);
-	LOGD("resized -- exit");
+	if (printmethods) LOGD("resized -- exit");
 	return nr;
 }
 
@@ -271,7 +273,7 @@ cv::Mat * processFrame(const cv::Mat *frame) {
 	static const bool do_gauss = false;
 	static const bool do_borders = false;
 
-	LOGD("Process Frame -- enter");
+	if (printmethods) LOGD("Process Frame -- enter");
 	if (frame->empty()) {
 		return NULL;
 	}
@@ -351,17 +353,17 @@ cv::Mat * processFrame(const cv::Mat *frame) {
 				cv::putText(zoomed, std::to_string(eye_thresh), cv::Point(20, 40), 1, 1, CV_RGB(255, 0, 255));
 				cv::Point res = cv::Point(int(std::round(zoomed.cols / scale_factor)), int(std::round(zoomed.rows / scale_factor)));
 				cv::putText(zoomed, std::to_string(res.x) + " x " + std::to_string(res.y), cv::Point(20, 60), 1, 1, CV_RGB(0,0,255));*/
-				LOGD("Process Frame -- exit");
+				if (printmethods) LOGD("Process Frame -- exit");
 				return zoomed;
 			}
 		}
 	} catch (cv::Exception&) {
 		std::string sss = NULL;
 		sss.c_str();
-		LOGD("Process Frame -- exit");
+		if (printmethods) LOGD("Process Frame -- exit");
 		return NULL;
 	}
-	LOGD("Process Frame -- exit");
+	if (printmethods) LOGD("Process Frame -- exit");
 	return NULL;
 }
 
