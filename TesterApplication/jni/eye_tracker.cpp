@@ -103,7 +103,7 @@ void create_nn(FANN::neural_net& net) {
 
 void MouseCallback(int event, int x, int y, int flags, void* userdata)
 {
-
+	LOGD("MouseCallback -- enter");
 	if (event == cv::EVENT_MOUSEMOVE || event == cv::EVENT_LBUTTONDOWN || event == cv::EVENT_LBUTTONDBLCLK || bdown)
 	{
 		click_pt.x = x;
@@ -124,6 +124,7 @@ void MouseCallback(int event, int x, int y, int flags, void* userdata)
 	if (event == cv::EVENT_LBUTTONUP) {
 		bdown = false;
 	}
+	LOGD("MouseCallback -- exit");
 }
 
 /**
@@ -135,6 +136,7 @@ void MouseCallback(int event, int x, int y, int flags, void* userdata)
  */
 bool detectEyesInFace(cv::Mat& im, std::vector<cv::Rect>& eyes, std::vector<cv::Mat>& tpls)
 {
+	LOGD("detectEyesInFace -- enter");
 	const static int scale = 1;
 
 	eyes.clear();
@@ -149,7 +151,7 @@ bool detectEyesInFace(cv::Mat& im, std::vector<cv::Rect>& eyes, std::vector<cv::
 	{
 		tpls.push_back(im(eye));
 	}
-
+	LOGD("detectEyesInFace -- exit");
 	return true;
 }
 
@@ -216,7 +218,11 @@ void trackEye(cv::Mat& im, cv::Mat& tpl, cv::Rect& rect)
 	window.height *= 2;
 
 	window &= cv::Rect(0, 0, im.cols, im.rows);
-
+	if (window.height - tpl.cols + 1 < 0 || window.width - tpl.rows + 1< 0) {
+		LOGD("Window is 0");
+		rect.x = rect.y = rect.width = rect.height = 0;
+		return;
+	}
 	cv::Mat dst(window.width - tpl.rows + 1, window.height - tpl.cols + 1, CV_32FC1);
 	cv::matchTemplate(im(window), tpl, dst, CV_TM_SQDIFF_NORMED);
 
@@ -427,7 +433,8 @@ cv::Point2d cppOnNewFrame(cv::Mat* frame) {
 
 
 void forcedFail() {
-	int i = *(int*)0x00;
+	int * n = (int*)0x00;
+	int x = *n;
 }
 
 
