@@ -109,6 +109,7 @@ public class ReadingMonitor {
 	
 	// Takes value from -1 to 1
 	public void newReadPosition(View rootView, double x, double y) {
+		System.err.println("Made it to reading monitor!!!");
 		if (waitCount > 0) {
 			//recently scrolled. want to wait for the eys to adjust
 			waitCount--;
@@ -163,7 +164,7 @@ public class ReadingMonitor {
 		
 		
 		//TODO: figure out double vs int
-		drawCircle((int)x, (int)y, 30, 0x66000000, true);
+		drawCircle((int)x, (int)y, 30, 0x6600FF00, true);
 		drawCircle((int)avgX, (int)avgY, 20, 0xFFFF0000, false);
 		updateScroll();
 		updateBlur();

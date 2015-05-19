@@ -7,7 +7,6 @@ import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.core.Core;
-import org.opencv.core.CvException;
 import org.opencv.core.Mat;
 import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
@@ -16,7 +15,6 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
-import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -33,14 +31,22 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 	private Mat 					mGrayT;
     public CameraBridgeViewBase   mOpenCvCameraView = null;
     
-    private int frameCount = 0;
+    private ReaderActivity ra;
     
-    private ExecutorService threadPool;
+    private CVTaskBuffer<Mat> tasks;
+    private EyeTrackerThread trackerThread;
+    private boolean validFrame;
 	
+    public WebFragment() {
+    	super();
+    	tasks = new CVTaskBuffer<Mat>();
+    	validFrame = false;
+    }
 	
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
+		ra = (ReaderActivity) activity;
 		mMonitor = new ReadingMonitor(R.id.web_view, R.id.web_circle_overlay, R.id.web_color_overlay, activity);
 	}
 	
@@ -51,12 +57,9 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 		View rootView = inflater.inflate(R.layout.web_reader,
 				container, false);
 		rootView.findViewById(R.id.web_view).setOnTouchListener(this);
-		ReaderActivity ra = (ReaderActivity)getActivity();
 		mOpenCvCameraView = (CameraBridgeViewBase) rootView.findViewById(R.id.web_camera_view);
 		mOpenCvCameraView.setCvCameraViewListener(this);
 		mOpenCvCameraView.setCameraIndex(1);
-
-		threadPool = Executors.newFixedThreadPool(100);
 		return rootView;
 	}
 	
@@ -78,6 +81,8 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 //		if (((ReaderActivity)getActivity()).connected) {
 			enableCameraView();
 //		}
+		trackerThread = new EyeTrackerThread(ra, this, tasks);
+		trackerThread.start();
 	}
 	
 	public void enableCameraView() {
@@ -121,6 +126,7 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 //		PointerCoords pc0 = new PointerCoords();
 //		event.getPointerCoords(0, pc0);
 //		mMonitor.newReadPosition(getView(), pc0.x, pc0.y);
+		validFrame = true;
 		return false;
 	}
 
@@ -143,7 +149,6 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-		if (ReaderActivity.VERBOSE) System.out.println(inputFrame.hashCode());
 		mGray = inputFrame.gray();
 		Mat temp1 = mGray.t();
 		mGrayT = mGray.t();
@@ -151,7 +156,10 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 		Imgproc.resize(mGrayT, mGray, mGray.size());
 		temp1.release();
 		mGrayT.release();
-//		threadPool.execute(new EyePositionThread(mGray, (ReaderActivity)getActivity(), this));
+		if (validFrame) {
+			validFrame = false;
+			tasks.addTask(mGray);
+		}
 		return mGray;
 
 		
@@ -167,12 +175,9 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 			return new Rect(0, start, width, width);
 		}
 	}
+
+	private ReaderActivity getReaderActivity() {
+		return (ReaderActivity) getActivity();
+	}
 	
-//	private Rect getCropArea(Mat m) {
-//		int width = m.cols();
-//		int height = m.rows();
-//		if (width > height) {
-//			
-//		}
-//	}
 }

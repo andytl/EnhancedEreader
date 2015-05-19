@@ -4,8 +4,8 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.*;
 
-public class CVTaskBuffer {
-	private Queue<MatPoint> tasks;
+public class CVTaskBuffer<E> {
+	private Queue<E> tasks;
 	private Lock lock;
 	//private Condition notFull;
 	private Condition notEmpty;
@@ -21,7 +21,7 @@ public class CVTaskBuffer {
 		return tasks.isEmpty();
 	}
 	
-	public MatPoint getTask() throws InterruptedException {
+	public E getTask() throws InterruptedException {
 		lock.lock();
 		try {
 			while (tasks.isEmpty()) {
@@ -32,7 +32,7 @@ public class CVTaskBuffer {
 			lock.unlock();
 		}
 	}
-	public void addTask(MatPoint e) {
+	public void addTask(E e) {
 		lock.lock();
 		try {
 			tasks.add(e);

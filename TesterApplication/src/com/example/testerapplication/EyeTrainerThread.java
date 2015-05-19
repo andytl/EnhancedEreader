@@ -3,11 +3,11 @@ package com.example.testerapplication;
 
 public class EyeTrainerThread extends Thread implements Runnable {
 
-	private CVTaskBuffer tasks;
+	private CVTaskBuffer<MatPoint> tasks;
 	//TODO: technically a bug
 	private boolean finished;
 	
-	public EyeTrainerThread(CVTaskBuffer tasks) { 
+	public EyeTrainerThread(CVTaskBuffer<MatPoint> tasks) { 
 		this.tasks = tasks;
 		this.finished = false;
 	}

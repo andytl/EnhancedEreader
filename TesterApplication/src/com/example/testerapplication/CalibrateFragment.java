@@ -1,10 +1,5 @@
 package com.example.testerapplication;
 
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
@@ -36,12 +31,12 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
     private double curY;
 	private boolean validFrame = false;
 	private ReaderActivity ra;
-    private CVTaskBuffer tasks;
+    private CVTaskBuffer<MatPoint> tasks;
     private EyeTrainerThread trainerThread;
     
     public CalibrateFragment() {
     	super();
-    	tasks = new CVTaskBuffer();
+    	tasks = new CVTaskBuffer<MatPoint>();
     }
     
     @Override

@@ -12,4 +12,8 @@ public class DoublePoint {
 		this.y = y;
 	}
 	
+	public String toString() {
+		return "x: " + x + "\ty: " + y;
+	}
+	
 }
