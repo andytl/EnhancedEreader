@@ -129,11 +129,14 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
-		drawCircle(ra, v, event.getX(), event.getY());
-		curX = interpolateX(event.getX(), v);
-		curY = interpolateY(event.getY(), v);
-		validFrame = true;
-		return true;
+		if (event.getAction() != MotionEvent.ACTION_MOVE) {
+			drawCircle(ra, v, event.getX(), event.getY());
+			curX = interpolateX(event.getX(), v);
+			curY = interpolateY(event.getY(), v);
+			validFrame = true;
+			return true;
+		}
+		return false;
 	}	
 	
 	@Override
@@ -148,8 +151,9 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 		if (validFrame) {
 			validFrame = false;
 			tasks.addTask(new MatPoint(mGray, curX, curY));
+			return mGray;
 		}
-		return mGray;
+		return null;
 	}
 
 	@Override

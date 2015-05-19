@@ -40,6 +40,7 @@ static const cv::Size eye_size = cv::Size(36, 26);
 static std::vector<double*> in_data;
 static std::vector<double*> out_data;
 
+static int trainCount = 0;
 
 
 // Callback function that simply prints the information to cout
@@ -72,11 +73,11 @@ void net_train() {
 	const unsigned int iterations_between_reports = 50; // 1000
 
 	FANN::training_data data;
-	net.set_callback(print_callback, NULL);
+//	net.set_callback(print_callback, NULL);
 	data.set_train_data(in_data.size(), eye_size.area() / 4, in_data.data(), 2, out_data.data());
 	net.init_weights(data);
 	net.train_on_data(data, max_iterations, iterations_between_reports, desired_error);
-	data.save_train("data.fann");
+//	data.save_train("data.fann");
 	if (printmethods) LOGD("net train -- exit");
 }
 
@@ -310,7 +311,7 @@ cv::Mat * processFrame(const cv::Mat *frame) {
 		{
 			double scale_factor = pixel_scale;
 			cv::Rect tempRect = resized(eye_bbs[0], eye_size);
-			LOGD("%d , %d , %d , %d", tempRect.height, tempRect.width, tempRect.x, tempRect.y);
+//			LOGD("%d , %d , %d , %d", tempRect.height, tempRect.width, tempRect.x, tempRect.y);
 			cv::Mat *zoomed = new cv::Mat((*frame)(tempRect));
 
 
@@ -399,7 +400,8 @@ int cppTrainOnFrame(const cv::Mat *frame, double x, double y) {
 //
 //		loaded = true;
 //	}
-
+	trainCount++;
+	LOGD("%d", trainCount);
 	cv::Mat *zoomed = processFrame(frame);
 	if (!zoomed)
 		return -1;

@@ -37,7 +37,7 @@ public class NativeInterface {
 	}
 	
 	public static void trainNeuralNetwork() {
-		int resultCode = nativeTrainOnFrame();
+		int resultCode = nativeTrainNeuralNet();
 	}
 
 	
@@ -49,9 +49,9 @@ public class NativeInterface {
 		return fooVal;
 	}
 	
-	private static native int nativeTrainOnFrame();
 	private static native int nativeInitializeTracker(String face, String eyes);
 	public static native int nativeOnNewFrame(long mat, DoublePoint dp);
 	private static native int nativeTrainOnFrame(long mat, double x, double y);
+	private static native int nativeTrainNeuralNet();
 	private static native int foo();
 }

@@ -151,7 +151,7 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 		Imgproc.resize(mGrayT, mGray, mGray.size());
 		temp1.release();
 		mGrayT.release();
-		threadPool.execute(new EyePositionThread(mGray, (ReaderActivity)getActivity(), this));
+//		threadPool.execute(new EyePositionThread(mGray, (ReaderActivity)getActivity(), this));
 		return mGray;
 
 		
