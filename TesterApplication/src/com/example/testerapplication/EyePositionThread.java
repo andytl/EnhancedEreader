@@ -9,7 +9,6 @@ public class EyePositionThread implements Runnable {
 	private Mat mat;
 	private ReaderActivity ra;
 	private NewReadCallback nrc;
-	private boolean calibrate;
 
 	
 	public EyePositionThread(Mat mat, ReaderActivity ra, NewReadCallback nrc) {

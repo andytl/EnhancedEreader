@@ -153,7 +153,19 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 		mGrayT.release();
 		threadPool.execute(new EyePositionThread(mGray, (ReaderActivity)getActivity(), this));
 		return mGray;
+
 		
+	}
+	
+	private Rect getCropArea(Mat m) {
+		int width = m.cols();int height = m.rows();
+		if(width > height) {
+			int start = (width - height)/2;
+			return new Rect(start , 0, height, height);
+		} else {
+			int start = (height - width) /2;
+			return new Rect(0, start, width, width);
+		}
 	}
 	
 //	private Rect getCropArea(Mat m) {

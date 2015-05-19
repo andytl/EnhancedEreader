@@ -1,5 +1,7 @@
 package com.example.testerapplication;
 
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -17,26 +19,31 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.RelativeLayout;
 
 import com.example.testerapplication.display.CircleView;
 
-public class CalibrateFragment extends Fragment implements CvCameraViewListener2, OnTouchListener {
+public class CalibrateFragment extends Fragment implements CvCameraViewListener2, OnTouchListener, OnClickListener {
 
 	private Mat                    mGrayT;
 	private Mat                    mGray;
     public CameraBridgeViewBase   mOpenCvCameraView = null;
     private double curX;
     private double curY;
-    private double frameCount;
-	private static final int CALIBRATE_FRAME_COUNT = 100;
 	private boolean validFrame = false;
 	private ReaderActivity ra;
-    private ExecutorService threadPool;
-
-
+    private CVTaskBuffer tasks;
+    private EyeTrainerThread trainerThread;
+    
+    public CalibrateFragment() {
+    	super();
+    	tasks = new CVTaskBuffer();
+    }
+    
     @Override
     public void onAttach(Activity activity) {
     	super.onAttach(activity);
@@ -54,9 +61,9 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
     	mOpenCvCameraView = (CameraBridgeViewBase) rootView.findViewById(R.id.web_camera_view);
 		mOpenCvCameraView.setCvCameraViewListener(this);
 		mOpenCvCameraView.setCameraIndex(1);
-		this.frameCount = 0;
-		threadPool = Executors.newFixedThreadPool(100);
 		rootView.setOnTouchListener(this);
+		Button button = (Button) rootView.findViewById(R.id.complete_calibrate);
+		button.setOnClickListener(this);
 		return rootView;
 	}
 	
@@ -66,7 +73,15 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 		if (ra.connected) {
 			enableCameraView();
 		}
-//		calibrateTopLeft();
+		//TODO: figure out if we need to terminate this thread
+		trainerThread = new EyeTrainerThread(tasks);
+		trainerThread.start();
+	}
+	
+	@Override
+	public void onPause() {
+		super.onPause();
+		trainerThread.finish();
 	}
 	
 	public void enableCameraView() {
@@ -119,41 +134,30 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 		curY = interpolateY(event.getY(), v);
 		validFrame = true;
 		return true;
-	}
-	
+	}	
 	
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-			mGray = inputFrame.gray();
-			Mat temp1 = mGray.t();
-			mGrayT = mGray.t();
-			Core.flip(temp1,  mGrayT,  -1);
-			Imgproc.resize(mGrayT, mGray, mGray.size());
-			temp1.release();
-			mGrayT.release();
-			if (validFrame) {
-				validFrame = false;
-				threadPool.execute(new CalibratePositionThread(curX, curY, mGray));
-			}
-			return mGray;
-//		}
+		mGray = inputFrame.gray();
+		Mat temp1 = mGray.t();
+		mGrayT = mGray.t();
+		Core.flip(temp1,  mGrayT,  -1);
+		Imgproc.resize(mGrayT, mGray, mGray.size());
+		temp1.release();
+		mGrayT.release();
+		if (validFrame) {
+			validFrame = false;
+			tasks.addTask(new MatPoint(mGray, curX, curY));
+		}
+		return mGray;
 	}
 
-
-	
-//	private void setNextCalibratePosition(Context context, View rootView) {
-//		if (curX == -1 && curY == -1) {
-//			calibrateTopRight();
-//		} else if (curX == 1 && curY == -1) {
-//			calibrateBottomLeft(); 
-//		} else if (curX == -1 && curY == 1) {
-//			calibrateBottomRight();
-//		} else {
-//			complete = true;
-//		}
-//	}
-	
-	
-
-	
+	@Override
+	public void onClick(View v) {
+		if (v.getId() == R.id.complete_calibrate) {
+			NativeInterface.trainNeuralNetwork();
+			ra.enterWebMode();
+		}
+		
+	}	
 }

@@ -64,5 +64,10 @@ extern "C" {
 		return resultCode;
 	}
 
+	JNIEXPORT jint JNICALL Java_com_example_testerapplication_NativeInterface_nativeTrainNeuralNetwork
+		(JNIEnv *env, jobject obj)
+	{
+		return 1;
+	}
 
 }
