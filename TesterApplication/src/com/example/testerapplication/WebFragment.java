@@ -149,19 +149,34 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
+//		mGray = inputFrame.gray();
+//		Mat temp1 = mGray.t();
+//		mGrayT = mGray.t();
+//		Core.flip(temp1,  mGrayT,  -1);
+//		Imgproc.resize(mGrayT, mGray, mGray.size());
+//		temp1.release();
+//		mGrayT.release();
+//		if (validFrame) {
+//			validFrame = false;
+//			tasks.addTask(mGray);
+//		}
+//		return mGray;
+		
 		mGray = inputFrame.gray();
-		Mat temp1 = mGray.t();
-		mGrayT = mGray.t();
-		Core.flip(temp1,  mGrayT,  -1);
-		Imgproc.resize(mGrayT, mGray, mGray.size());
-		temp1.release();
-		mGrayT.release();
+		Mat square = new Mat(mGray, getCropArea(mGray));
+		square = square.clone();
+		Mat tempT = square.t();
+		Mat squareT = square.t();
+		Core.flip(tempT,  squareT, -1);
 		if (validFrame) {
 			validFrame = false;
-			tasks.addTask(mGray);
+			tasks.addTask(squareT);
 		}
+		square.release();
+		tempT.release();
+		Imgproc.resize(squareT, mGray, mGray.size());
 		return mGray;
-
+		
 		
 	}
 	

@@ -68,10 +68,12 @@ void update_net(cv::Mat * eye_data, double x, double y) {
 
 void net_train() {
 	if (printmethods) LOGD("net_train -- enter");
+	LOGD("net train");
 	const float desired_error = 0.001f;
-	const unsigned int max_iterations = 250;// 300000;
-	const unsigned int iterations_between_reports = 50; // 1000
-
+//	const unsigned int max_iterations = 250;// 300000;
+		const unsigned int max_iterations = 500;
+//	const unsigned int iterations_between_reports = 50; // 1000
+	const unsigned int iterations_between_reports = 100;
 	FANN::training_data data;
 //	net.set_callback(print_callback, NULL);
 	data.set_train_data(in_data.size(), eye_size.area() / 4, in_data.data(), 2, out_data.data());
@@ -99,7 +101,7 @@ void create_nn(FANN::neural_net& net) {
     net.set_activation_function_hidden(FANN::SIGMOID_SYMMETRIC_STEPWISE);
     net.set_activation_function_output(FANN::SIGMOID_SYMMETRIC_STEPWISE);
 
-	//net.set_training_algorithm(FANN::TRAIN_INCREMENTAL);
+//	net.set_training_algorithm(FANN::TRAIN_INCREMENTAL);
 
     if (printmethods) LOGD("create nn -- exit");
 }
@@ -294,6 +296,7 @@ cv::Mat * processFrame(const cv::Mat *frame) {
 			// Try to detect the face and the eye of the user
 			detectEyes(gray, face_bbs, eye_bbs, eye_tpls);
 		} else if (eye_bbs.size() > 0) {
+			LOGD("Num of Eyes: %d", eye_bbs.size());
 			for (int i = 0; i < eye_bbs.size(); i++) {
 				cv::Rect& eye_bb = eye_bbs[i];
 				cv::Mat& eye_tpl = eye_tpls[i];
@@ -384,24 +387,9 @@ int setupNativeCode(std::string face, std::string eye)
 }
 
 int cppTrainOnFrame(const cv::Mat *frame, double x, double y) {
-//	if (!loaded) {
-//		// Load the cascade classifiers
-//		// Make sure you point the XML files to the right path, or
-//		// just copy the files from [OPENCV_DIR]/data/haarcascades directory
-//		face_cascade.load("haarcascades/haarcascade_frontalface_alt2.xml");
-//		//eye_cascade.load("haarcascades/haarcascade_eye_tree_eyeglasses.xml");
-//		eye_cascade.load("haarcascades/haarcascade_mcs_lefteye.xml");
-//
-//		// Check if everything is ok
-//		if (face_cascade.empty() || eye_cascade.empty())
-//			return 1;
-//
-//		create_nn(net);
-//
-//		loaded = true;
-//	}
 	trainCount++;
 	LOGD("%d", trainCount);
+	LOGD("%f, %f", x, y);
 	cv::Mat *zoomed = processFrame(frame);
 	if (!zoomed)
 		return -1;
@@ -415,20 +403,28 @@ int cppTrainOnFrame(const cv::Mat *frame, double x, double y) {
 
 cv::Point2d cppOnNewFrame(cv::Mat* frame) {
 	//cv::putText(zoomed, std::to_string(click_data.x) + ", " + std::to_string(click_data.y), cv::Point(20, 80), 1, 1, CV_RGB(0,255,0));
-
+	LOGD("OnNewFrame -- enter");
 	cv::Mat *eye_data = processFrame(frame);
-
+	if (eye_data == NULL) {
+		LOGD("eye data is null");
+		return cv::Point2d(-10, -10);
+	}
 	double *in = new double[eye_size.area() / 4];
+	LOGD("num pixels: %d", eye_size.area());
 	for (unsigned i = 0; i < eye_size.area() / 4; i++) {
 		in[i] = (eye_data->data[i] / 128.) - 1.;
+		if (in[i] < -1 || in[i] > 1) {
+			LOGD("PIXEL OUT OF RANGE");
+		}
 	}
 	double *out = net.run(in);
 	//cv::putText(zoomed, std::to_string(out[0]) + ", " + std::to_string(out[1]), cv::Point(20, 100), 1, 1, CV_RGB(0,255,255));
+	LOGD("%f, %f", out[0], out[1]);
 	cv::Point2d outpt(out[0], out[1]);
 	//cv::circle(zoomed, guesspt, 1, CV_RGB(0,255,255), 1);
 	delete in;
 	delete eye_data;
-
+	LOGD("OnNewFrame -- exit");
 	return outpt;
 }
 

@@ -5,6 +5,7 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
 
 import android.app.Activity;
@@ -124,31 +125,70 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
-		if (event.getAction() != MotionEvent.ACTION_MOVE) {
+//		if (event.getAction() != MotionEvent.ACTION_MOVE) {
 			drawCircle(ra, v, event.getX(), event.getY());
 			curX = interpolateX(event.getX(), v);
 			curY = interpolateY(event.getY(), v);
 			validFrame = true;
 			return true;
-		}
-		return false;
+//		}
+//		return false;
 	}	
 	
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
+//		Mat result = null;
+//		mGray = inputFrame.gray();
+//		Mat temp1 = mGray.t();
+//		mGrayT = mGray.t();
+//		Core.flip(temp1,  mGrayT,  -1);
+//		Imgproc.resize(mGrayT, mGray, mGray.size());
+//		temp1.release();
+//		mGrayT.release();
+//		if (validFrame) {
+//			validFrame = false;
+//			verifyRange();
+//			tasks.addTask(new MatPoint(mGray, curX, curY));
+//			result =  mGray;
+//		}
+//		
+//		return result;
+		
+		
 		mGray = inputFrame.gray();
-		Mat temp1 = mGray.t();
-		mGrayT = mGray.t();
-		Core.flip(temp1,  mGrayT,  -1);
-		Imgproc.resize(mGrayT, mGray, mGray.size());
-		temp1.release();
-		mGrayT.release();
+		Mat square = new Mat(mGray, getCropArea(mGray));
+		square = square.clone();
+		Mat tempT = square.t();
+		Mat squareT = square.t();
+		Core.flip(tempT,  squareT, -1);
 		if (validFrame) {
 			validFrame = false;
-			tasks.addTask(new MatPoint(mGray, curX, curY));
-			return mGray;
+			verifyRange();
+			tasks.addTask(new MatPoint(squareT, curX, curY));
 		}
-		return null;
+		square.release();
+		tempT.release();
+		Imgproc.resize(squareT, mGray, mGray.size());
+		return mGray;
+		
+		
+	}
+	
+	private Rect getCropArea(Mat m) {
+		int width = m.cols();int height= m.rows();
+		if (width >  height) {
+			int start = (width-height)/2;
+			return new Rect(start, 0 , height, height);
+		} else {
+			int start = (height - width) /2 ;
+			return new Rect( 0, start ,width, width);
+		}
+	}
+	
+	private void verifyRange() {
+		if (curX < -1 || curY < -1 || curY > 1 || curX > 1) {
+			System.err.println("TRAIN VALUES OUT OF RANGE!!!!!!!!!!!!!!!");
+		}
 	}
 
 	@Override
@@ -157,6 +197,5 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 			NativeInterface.trainNeuralNetwork();
 			ra.enterWebMode();
 		}
-		
 	}	
 }
