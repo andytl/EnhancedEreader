@@ -28,7 +28,7 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 	private ReadingMonitor mMonitor;
 	private Mat                     mRgba;
 	private Mat                     mGray;
-	private Mat 					mGrayT;
+	private Mat 					mSquareT;
     public CameraBridgeViewBase   mOpenCvCameraView = null;
     
     private ReaderActivity ra;
@@ -134,7 +134,7 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 	public void onCameraViewStarted(int width, int height) {
 	    mGray = new Mat();
         mRgba = new Mat();
-        mGrayT = new Mat();
+        mSquareT = new Mat();
 	}
 
 	@Override
@@ -162,22 +162,39 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 //		}
 //		return mGray;
 		
+		
+		
+//		mGray = inputFrame.gray();
+//		Mat square = new Mat(mGray, getCropArea(mGray));
+//		mSquareT = square.t().clone();
+//		Core.flip(mSquareT,  mSquareT, -1);
+//		if (validFrame) {
+//			validFrame = false;
+//			tasks.addTask(mSquareT);
+//		}
+//		square.release();
+//		Imgproc.resize(mSquareT, mGray, mGray.size());
+//		return mGray;
+//		
+//		
+		
 		mGray = inputFrame.gray();
 		Mat square = new Mat(mGray, getCropArea(mGray));
 		square = square.clone();
 		Mat tempT = square.t();
 		Mat squareT = square.t();
 		Core.flip(tempT,  squareT, -1);
-		if (validFrame) {
-			validFrame = false;
-			tasks.addTask(squareT);
-		}
+		
 		square.release();
 		tempT.release();
 		Imgproc.resize(squareT, mGray, mGray.size());
-		return mGray;
-		
-		
+		if (validFrame) {
+			validFrame = false;
+			tasks.addTask(squareT);
+		} else {
+			squareT.release();
+		}
+		return mGray;		
 	}
 	
 	private Rect getCropArea(Mat m) {

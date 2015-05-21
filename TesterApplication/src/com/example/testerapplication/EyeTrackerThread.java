@@ -24,6 +24,7 @@ public class EyeTrackerThread extends Thread implements Runnable {
 				continue;
 			}
 			final DoublePoint dp = NativeInterface.onNewFrame(mat);
+			mat.release();
 			System.err.println(dp);
 			if (dp.x != 0 && dp.y != 0) {
 				// send result back to UI thread. Shahar will do this

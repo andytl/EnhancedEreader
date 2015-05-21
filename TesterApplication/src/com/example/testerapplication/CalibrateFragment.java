@@ -155,21 +155,41 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 //		return result;
 		
 		
+//		mGray = inputFrame.gray();
+//		Mat square = new Mat(mGray, getCropArea(mGray));
+//		square = square.clone();
+//		Mat tempT = square.t();
+//		Mat squareT = square.t();
+//		Core.flip(tempT,  squareT, -1);
+//		if (validFrame) {
+//			validFrame = false;
+//			verifyRange();
+//			tasks.addTask(new MatPoint(squareT, curX, curY));
+//		}
+//		square.release();
+//		tempT.release();
+//		Imgproc.resize(squareT, mGray, mGray.size());
+//		return mGray;
+//		
+//		
+		
 		mGray = inputFrame.gray();
 		Mat square = new Mat(mGray, getCropArea(mGray));
 		square = square.clone();
 		Mat tempT = square.t();
 		Mat squareT = square.t();
 		Core.flip(tempT,  squareT, -1);
-		if (validFrame) {
-			validFrame = false;
-			verifyRange();
-			tasks.addTask(new MatPoint(squareT, curX, curY));
-		}
+		
 		square.release();
 		tempT.release();
 		Imgproc.resize(squareT, mGray, mGray.size());
-		return mGray;
+		if (validFrame) {
+			validFrame = false;
+			tasks.addTask(new MatPoint(squareT, curX, curY));
+		} else {
+			squareT.release();
+		}
+		return mGray;	
 		
 		
 	}

@@ -107,7 +107,10 @@ public class ReadingMonitor {
 		return width * coor;
 	}
 	
-	// Takes value from -1 to 1
+/*  CORRECT VERSION. Just debugging for now
+ * 
+ * 	// Takes value from -1 to 1
+ *
 	public void newReadPosition(View rootView, double x, double y) {
 		System.err.println("Made it to reading monitor!!!");
 		if (waitCount > 0) {
@@ -176,6 +179,32 @@ public class ReadingMonitor {
 
 	}
 
+*/
+
+	public void newReadPosition(View rootView, double x, double y) {
+		// grab the web views and overlays
+		circleOverlay = (ViewGroup)rootView.findViewById(circleOverlayId);
+		colorOverlay = (TableLayout)rootView.findViewById(colorOverlayId);
+		scrollable = (ViewGroup)rootView.findViewById(viewIdScrollable);
+		this.rootView = rootView;
+		
+//		x = 2 * Math.random() -1;
+//		y = 2 * Math.random() -1;
+		if (Math.abs(x) > 1 || Math.abs(y) > 1) {
+			offScreenCount++;
+			return;
+		} else {
+			offScreenCount = Math.max(offScreenCount - 1, 0);
+		}
+		
+		DoublePoint dp = convertPoint(x, y);
+		x = dp.x;
+		y = dp.y;
+		drawCircle((int)x, (int)y, 30, 0x6600FF00, true);
+		System.out.println("Circle location: " + x + ", " + y);
+	}
+	
+	
 	private void updateBlur() {
 		if (ReaderActivity.VERBOSE) System.out.println("udpateBlur");
 		int top = scrollable.getTop();
