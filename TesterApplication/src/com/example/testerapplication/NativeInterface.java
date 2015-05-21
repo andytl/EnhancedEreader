@@ -5,16 +5,7 @@ import java.io.File;
 import org.opencv.core.Mat;
 
 public class NativeInterface {
-	private int fooVal;
-	public NativeInterface() {
-		// TODO Auto-generated constructor stub
-		fooVal = 0;
-	}
-	
-	public void doFoo(){
-		fooVal = foo();
-	}
-	
+
 	public static DoublePoint onNewFrame(Mat mat) {
 		DoublePoint dp = new DoublePoint(2000, 2000);
 		int resultCode = nativeOnNewFrame(mat.nativeObj, dp);
@@ -48,13 +39,8 @@ public class NativeInterface {
 		return nativeInitializeTracker(face, eyes);
 	}
 	
-	public int getFoo() {
-		return fooVal;
-	}
-	
 	private static native int nativeInitializeTracker(String face, String eyes);
 	public static native int nativeOnNewFrame(long mat, DoublePoint dp);
 	private static native int nativeTrainOnFrame(long mat, double x, double y);
 	private static native int nativeTrainNeuralNet();
-	private static native int foo();
 }
