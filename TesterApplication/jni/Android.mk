@@ -56,7 +56,7 @@ include $(OPENCV_PACKAGE_DIR)/sdk/native/jni/OpenCV.mk
 LOCAL_MODULE    := TesterApplication
 LOCAL_SRC_FILES := TesterApplication.cpp
 LOCAL_LDLIBS            += -lm -llog -landroid
-LOCAL_STATIC_LIBRARIES  += float-fann double-fann fixed-fann fann
+LOCAL_STATIC_LIBRARIES  += double-fann
 LOCAL_CFLAGS            += -I$(LOCAL_PATH)/fann/include -std=c++11
 
 include $(BUILD_SHARED_LIBRARY)

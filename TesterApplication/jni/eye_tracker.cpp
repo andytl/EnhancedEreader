@@ -61,7 +61,6 @@ void update_net(cv::Mat * eye_data, double x, double y) {
 	double *out = new double[2];
 	out[0] = x;
 	out[1] = y;
-
 	in_data.push_back(in);
 	out_data.push_back(out);
 }
@@ -70,16 +69,16 @@ void net_train() {
 	if (printmethods) LOGD("net_train -- enter");
 	LOGD("net train");
 	const float desired_error = 0.001f;
-//	const unsigned int max_iterations = 250;// 300000;
-		const unsigned int max_iterations = 500;
-//	const unsigned int iterations_between_reports = 50; // 1000
-	const unsigned int iterations_between_reports = 100;
+	const unsigned int max_iterations = 250;// 300000;
+//		const unsigned int max_iterations = 500;
+	const unsigned int iterations_between_reports = 50; // 1000
+//	const unsigned int iterations_between_reports = 100;
 	FANN::training_data data;
 //	net.set_callback(print_callback, NULL);
 	data.set_train_data(in_data.size(), eye_size.area() / 4, in_data.data(), 2, out_data.data());
 	net.init_weights(data);
 	net.train_on_data(data, max_iterations, iterations_between_reports, desired_error);
-//	data.save_train("data.fann");
+	data.save_train("/sdcard/TrainData/data.fann");
 	if (printmethods) LOGD("net train -- exit");
 }
 
@@ -91,6 +90,7 @@ void create_nn(FANN::neural_net& net) {
     const unsigned int num_hidden = 8;
     const unsigned int num_output = 2;
 
+    LOGD("create nn");
 	net.create_standard(num_layers, num_input, num_hidden, num_hidden, num_output);
 
     net.set_learning_rate(learning_rate);
@@ -314,7 +314,6 @@ cv::Mat * processFrame(const cv::Mat *frame) {
 		{
 			double scale_factor = pixel_scale;
 			cv::Rect tempRect = resized(eye_bbs[0], eye_size);
-//			LOGD("%d , %d , %d , %d", tempRect.height, tempRect.width, tempRect.x, tempRect.y);
 			cv::Mat *zoomed = new cv::Mat((*frame)(tempRect));
 
 
@@ -388,8 +387,6 @@ int setupNativeCode(std::string face, std::string eye)
 
 int cppTrainOnFrame(const cv::Mat *frame, double x, double y) {
 	trainCount++;
-	LOGD("%d", trainCount);
-	LOGD("%f, %f", x, y);
 	cv::Mat *zoomed = processFrame(frame);
 	if (!zoomed)
 		return -1;
@@ -404,6 +401,7 @@ int cppTrainOnFrame(const cv::Mat *frame, double x, double y) {
 cv::Point2d cppOnNewFrame(cv::Mat* frame) {
 	//cv::putText(zoomed, std::to_string(click_data.x) + ", " + std::to_string(click_data.y), cv::Point(20, 80), 1, 1, CV_RGB(0,255,0));
 	LOGD("OnNewFrame -- enter");
+	LOGD("%p", &net);
 	cv::Mat *eye_data = processFrame(frame);
 	if (eye_data == NULL) {
 		LOGD("eye data is null");
@@ -419,7 +417,8 @@ cv::Point2d cppOnNewFrame(cv::Mat* frame) {
 	}
 	double *out = net.run(in);
 	//cv::putText(zoomed, std::to_string(out[0]) + ", " + std::to_string(out[1]), cv::Point(20, 100), 1, 1, CV_RGB(0,255,255));
-	LOGD("%f, %f", out[0], out[1]);
+	LOGD("%lf, %lf", out[0], out[1]);
+	LOGD("%p", out);
 	cv::Point2d outpt(out[0], out[1]);
 	//cv::circle(zoomed, guesspt, 1, CV_RGB(0,255,255), 1);
 	delete in;
