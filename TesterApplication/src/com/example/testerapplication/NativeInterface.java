@@ -19,6 +19,7 @@ public class NativeInterface {
 	}
 	
 	public static void trainOnFrame(Mat mat, double x, double y) {
+		System.err.println(mat.size());
 		int resultCode = nativeTrainOnFrame(mat.nativeObj, x, y);
 		if (resultCode == -1) {
 			System.err.println("Train on Frame Failed");
