@@ -33,6 +33,8 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
     
     private ReaderActivity ra;
     
+    private long lastTime;
+    
     private CVTaskBuffer<Mat> tasks;
     private EyeTrackerThread trackerThread;
     private boolean validFrame;
@@ -41,6 +43,7 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
     	super();
     	tasks = new CVTaskBuffer<Mat>();
     	validFrame = false;
+    	lastTime = System.currentTimeMillis();
     }
 	
 	@Override
@@ -177,7 +180,9 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 //		return mGray;
 //		
 //		
-		
+		long temp = System.currentTimeMillis();
+		validFrame = temp - lastTime > 200;
+		lastTime = temp;
 		mGray = inputFrame.gray();
 		Mat square = new Mat(mGray, getCropArea(mGray));
 		square = square.clone();

@@ -27,13 +27,15 @@ public class NativeInterface {
 		}
 	}
 	
-	public static void trainOnFrame(Mat mat, double x, double y) {
+	public static boolean trainOnFrame(Mat mat, double x, double y) {
 		System.err.println(mat.size());
 		int resultCode = nativeTrainOnFrame(mat.nativeObj, x, y);
 		if (resultCode == -1) {
-			System.err.println("Train on Frame Failed");
+			System.err.println("train failed");
+			return false;
 		} else {
-			System.err.println("SUCCESSS!!!! OH My GODDDDDD");
+			System.err.println("train success");
+			return true;
 		}
 	}
 	

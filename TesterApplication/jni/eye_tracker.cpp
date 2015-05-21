@@ -296,7 +296,6 @@ cv::Mat * processFrame(const cv::Mat *frame) {
 			// Try to detect the face and the eye of the user
 			detectEyes(gray, face_bbs, eye_bbs, eye_tpls);
 		} else if (eye_bbs.size() > 0) {
-			LOGD("Num of Eyes: %d", eye_bbs.size());
 			for (int i = 0; i < eye_bbs.size(); i++) {
 				cv::Rect& eye_bb = eye_bbs[i];
 				cv::Mat& eye_tpl = eye_tpls[i];

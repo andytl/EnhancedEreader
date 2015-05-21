@@ -28,12 +28,14 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 	private Mat                    mGrayT;
 	private Mat                    mGray;
     public CameraBridgeViewBase   mOpenCvCameraView = null;
-    private double curX;
-    private double curY;
-	private boolean validFrame = false;
+//    private double curX;
+//    private double curY;
+	public boolean validFrame = false;
 	private ReaderActivity ra;
     private CVTaskBuffer<MatPoint> tasks;
     private EyeTrainerThread trainerThread;
+    private CalibrationState cState;
+    
     
     public CalibrateFragment() {
     	super();
@@ -70,8 +72,11 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 			enableCameraView();
 		}
 		//TODO: figure out if we need to terminate this thread
-		trainerThread = new EyeTrainerThread(tasks);
+		cState = new CalibrationState();
+		trainerThread = new EyeTrainerThread(tasks, cState, this, ra);
 		trainerThread.start();
+		updateCircle(cState.getCurrentCoordinate());
+		validFrame = true;
 	}
 	
 	@Override
@@ -111,6 +116,10 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 		rl.addView(cv);
 	}
 	
+	public void updateCircle(DoublePoint dp) {
+		drawCircle(getActivity(), getView(), dp.x, dp.y);
+	}
+	
 	public double interpolateX(double x, View v) {
 		double right = v.getRight();
 		double left = v.getLeft();
@@ -127,8 +136,8 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 	public boolean onTouch(View v, MotionEvent event) {
 //		if (event.getAction() != MotionEvent.ACTION_MOVE) {
 			drawCircle(ra, v, event.getX(), event.getY());
-			curX = interpolateX(event.getX(), v);
-			curY = interpolateY(event.getY(), v);
+//			curX = interpolateX(event.getX(), v);
+//			curY = interpolateY(event.getY(), v);
 			validFrame = true;
 			return true;
 //		}
@@ -173,6 +182,11 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 //		
 //		
 		
+		if (!cState.initialized()) {
+			View rootView = getView();
+			cState.setDimensions(rootView.getWidth(), rootView.getHeight());
+		}
+		
 		mGray = inputFrame.gray();
 		Mat square = new Mat(mGray, getCropArea(mGray));
 		square = square.clone();
@@ -185,7 +199,9 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 		Imgproc.resize(squareT, mGray, mGray.size());
 		if (validFrame) {
 			validFrame = false;
-			tasks.addTask(new MatPoint(squareT, curX, curY));
+			DoublePoint dp = cState.getCurrentCoordinate();
+			View rootView = getView();
+			tasks.addTask(new MatPoint(squareT, interpolateX(dp.x, rootView), interpolateY(dp.y, rootView), cState.getPositionID()));
 		} else {
 			squareT.release();
 		}
@@ -205,17 +221,12 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 		}
 	}
 	
-	private void verifyRange() {
-		if (curX < -1 || curY < -1 || curY > 1 || curX > 1) {
-			System.err.println("TRAIN VALUES OUT OF RANGE!!!!!!!!!!!!!!!");
-		}
-	}
-
 	@Override
 	public void onClick(View v) {
 		if (v.getId() == R.id.complete_calibrate) {
 			NativeInterface.trainNeuralNetwork();
 			ra.enterWebMode();
 		}
-	}	
+	}
+	
 }
