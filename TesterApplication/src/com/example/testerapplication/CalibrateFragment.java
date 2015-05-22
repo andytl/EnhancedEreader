@@ -224,7 +224,7 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 	@Override
 	public void onClick(View v) {
 		if (v.getId() == R.id.complete_calibrate) {
-			NativeInterface.trainNeuralNetwork();
+			NativeInterface.trainNeuralNetwork(ra.createLocalFile(ra.getUserName()));
 			ra.enterWebMode();
 		}
 	}

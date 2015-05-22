@@ -30,17 +30,22 @@ public class NativeInterface {
 		}
 	}
 	
-	public static void trainNeuralNetwork() {
-		int resultCode = nativeTrainNeuralNet();
+	public static void trainNeuralNetwork(String saveLocation) {
+		int resultCode = nativeTrainNeuralNet(saveLocation);
 	}
 
+	public static void loadUserProfile(String filename) {
+		nativeLoadNeuralNet(filename);
+	}
 	
 	public static int initializeTracker(String face, String eyes) {
 		return nativeInitializeTracker(face, eyes);
 	}
 	
+	
+	private static native void nativeLoadNeuralNet(String filename);
 	private static native int nativeInitializeTracker(String face, String eyes);
 	public static native int nativeOnNewFrame(long mat, DoublePoint dp);
 	private static native int nativeTrainOnFrame(long mat, double x, double y);
-	private static native int nativeTrainNeuralNet();
+	private static native int nativeTrainNeuralNet(String saveLocation);
 }

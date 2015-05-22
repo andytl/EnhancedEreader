@@ -185,6 +185,7 @@ public class ReaderActivity extends Activity {
 	
 	public void selectUser(UserProfile user) {
 		currentUser = user;
+		NativeInterface.loadUserProfile(createLocalFile(user.getUserName()));
 		getFragmentManager().beginTransaction()
 			.add(R.id.container, new WebFragment(), WEB_MODE)
 			.commit();
@@ -299,6 +300,19 @@ public class ReaderActivity extends Activity {
 	
 	public Handler getHandler() {
 		return mHandler;
+	}
+	
+	public String getUserName() {
+		if (currentUser != null) {
+			return currentUser.getUserName();
+		} else {
+			return null;
+		}
+	}
+	
+	
+	public String createLocalFile(String userName) {
+		return getFilesDir() + "/" + userName + ".fann";
 	}
 	
 	/* ****************************************/

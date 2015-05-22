@@ -1,6 +1,7 @@
 package com.example.testerapplication;
 
 import android.app.Activity;
+import android.content.Context;
 
 
 public class EyeTrainerThread extends Thread implements Runnable {
@@ -50,13 +51,15 @@ public class EyeTrainerThread extends Thread implements Runnable {
 				cf.validFrame = true;
 			}
 		}
-		NativeInterface.trainNeuralNetwork();
+		final ReaderActivity ra = (ReaderActivity)activity;
+		NativeInterface.trainNeuralNetwork(ra.createLocalFile(ra.getUserName()));
 		activity.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				((ReaderActivity)activity).enterWebMode();
+				ra.enterWebMode();
 			}
 		});
 	}
+	
 	
 }
