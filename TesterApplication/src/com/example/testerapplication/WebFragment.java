@@ -25,7 +25,8 @@ import android.webkit.WebViewClient;
 
 public class WebFragment extends Fragment implements OnTouchListener, CvCameraViewListener2, NewReadCallback{
 
-	private ReadingMonitor mMonitor;
+//	private ReadingMonitor mMonitor;
+	private FocusTracker mMonitor;
 	private Mat                     mRgba;
 	private Mat                     mGray;
 	private Mat 					mSquareT;
@@ -33,7 +34,7 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
     
     private ReaderActivity ra;
     
-    private long lastTime;
+    private int frameCount;
     
     private CVTaskBuffer<Mat> tasks;
     private EyeTrackerThread trackerThread;
@@ -43,14 +44,15 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
     	super();
     	tasks = new CVTaskBuffer<Mat>();
     	validFrame = false;
-    	lastTime = System.currentTimeMillis();
+    	frameCount = 0;
     }
 	
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 		ra = (ReaderActivity) activity;
-		mMonitor = new ReadingMonitor(R.id.web_view, R.id.web_circle_overlay, R.id.web_color_overlay, activity);
+//		mMonitor = new ReadingMonitor(R.id.web_view, R.id.web_circle_overlay, R.id.web_color_overlay, activity);
+		
 	}
 	
 	@Override
@@ -71,13 +73,14 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 		super.onResume();
 		final View rootView = getView();
 		final Context context = getActivity();
+		mMonitor  = new FocusTracker(ra, rootView);
 		WebView wv = (WebView) rootView.findViewById(R.id.web_view);
 		wv.setWebViewClient(new WebViewClient());
 		wv.loadUrl("https://www.gutenberg.org/files/31547/31547-h/31547-h.htm");		
 		rootView.post(new Runnable() {
 			@Override
 			public void run() {
-				mMonitor.createColorOverlay(rootView, context);
+//				mMonitor.createColorOverlay(rootView, context);
 //				createOverlay(rootView, R.id.web_color_overlay);
 			}
 		});
@@ -119,7 +122,8 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 	
 	// Takes a point between -1 and 1
 	public void newReadPosition(double x, double y) {
-		mMonitor.newReadPosition(getView(), x, y);
+//		mMonitor.newReadPosition(getView(), x, y);
+		mMonitor.newReadPosition(x, y);
 	}
 	
 	@Override
@@ -152,37 +156,7 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-//		mGray = inputFrame.gray();
-//		Mat temp1 = mGray.t();
-//		mGrayT = mGray.t();
-//		Core.flip(temp1,  mGrayT,  -1);
-//		Imgproc.resize(mGrayT, mGray, mGray.size());
-//		temp1.release();
-//		mGrayT.release();
-//		if (validFrame) {
-//			validFrame = false;
-//			tasks.addTask(mGray);
-//		}
-//		return mGray;
-		
-		
-		
-//		mGray = inputFrame.gray();
-//		Mat square = new Mat(mGray, getCropArea(mGray));
-//		mSquareT = square.t().clone();
-//		Core.flip(mSquareT,  mSquareT, -1);
-//		if (validFrame) {
-//			validFrame = false;
-//			tasks.addTask(mSquareT);
-//		}
-//		square.release();
-//		Imgproc.resize(mSquareT, mGray, mGray.size());
-//		return mGray;
-//		
-//		
-		long temp = System.currentTimeMillis();
-		validFrame = temp - lastTime > 200;
-		lastTime = temp;
+		frameCount++;
 		mGray = inputFrame.gray();
 		Mat square = new Mat(mGray, getCropArea(mGray));
 		square = square.clone();
@@ -193,12 +167,13 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 		square.release();
 		tempT.release();
 		Imgproc.resize(squareT, mGray, mGray.size());
-		if (validFrame) {
+		if (validFrame || frameCount >= 10) {
 			validFrame = false;
 			tasks.addTask(squareT);
 		} else {
 			squareT.release();
 		}
+		frameCount %= 10;
 		return mGray;		
 	}
 	

@@ -7,12 +7,12 @@ import android.view.View;
 
 public class CircleView extends View {
 	
-	int x;
-	int y;
+	float x;
+	float y;
 	int radius;
 	Paint paint;
 	
-	public CircleView(Context context, int x, int y, int radius, int color) {
+	public CircleView(Context context, float x, float y, int radius, int color) {
 		super(context);
 		this.x = x;
 		this.y = y;
