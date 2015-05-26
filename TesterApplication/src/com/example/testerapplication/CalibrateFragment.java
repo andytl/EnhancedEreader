@@ -94,7 +94,9 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 	@Override
 	public void onPause() {
 		super.onPause();
-		trainerThread.finish();
+		if (trainerThread != null) {
+			trainerThread.finish();
+		}
 	}
 	
 	public void enableCameraView() {
@@ -122,10 +124,14 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 	}
 
 	private void drawCircle(Context context, View rootView, double x, double y) {
-		RelativeLayout rl = (RelativeLayout) rootView.findViewById(R.id.calibrate_circle_overlay);
-		CircleView cv = new CircleView(context, (int)x, (int)y, 100, 0xFFFF0000);
-//		rl.removeAllViews();
-		rl.addView(cv);
+		if (rootView != null) {
+			RelativeLayout rl = (RelativeLayout) rootView.findViewById(R.id.calibrate_circle_overlay);
+			if (rl != null) {
+				CircleView cv = new CircleView(context, (int)x, (int)y, 100, 0xFFFF0000);
+				rl.removeAllViews();
+				rl.addView(cv);
+			}
+		}
 	}
 	
 	public void updateCircle(DoublePoint dp) {

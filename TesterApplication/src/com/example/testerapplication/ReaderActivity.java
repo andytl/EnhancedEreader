@@ -12,6 +12,7 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 
 import android.app.Activity;
+import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
@@ -339,15 +340,25 @@ public class ReaderActivity extends Activity {
 	
 	@Override 
 	public void onBackPressed() {
-		WebFragment wf = (WebFragment) getFragmentManager().findFragmentByTag(WEB_MODE);
+		FragmentManager fm = getFragmentManager();
+		WebFragment wf = (WebFragment) fm.findFragmentByTag(WEB_MODE);
 		if (!(wf != null && wf.isVisible() && wf.goBack())) {
-			super.onBackPressed();
+			LoginFragment lf = (LoginFragment) fm.findFragmentByTag(LOGIN_MODE);
+			if (lf == null || !lf.isVisible()) {
+				fm.beginTransaction()
+					.replace(R.id.container,  new LoginFragment(), LOGIN_MODE)
+					.commit();
+			} else {
+				super.onBackPressed();
+			}
 		}
 	}	
 	
 	public void updateFocusRate(double focusRate) {
 		TextView tv = (TextView) findViewById(R.id.display_focus_rate);
-		tv.setText("Focus Rate: " + focusRate);
+		if (tv != null) {
+			tv.setText("Focus Rate: " + focusRate);
+		}
 	}
 	
 }
