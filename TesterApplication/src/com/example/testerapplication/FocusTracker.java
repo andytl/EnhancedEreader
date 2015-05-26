@@ -16,17 +16,13 @@ public class FocusTracker {
 	private double avgX;
 	private double avgY;
 	private View rootView;
-	private Context context;
+	private ReaderActivity ra;
 	
 	
-	public FocusTracker(Context context, View rootView) {
-		this.context = context;
+	public FocusTracker(ReaderActivity ra, View rootView) {
 		this.rootView = rootView;
-		curX = 0;
-		curY = 0;
-		avgX = 0;
-		avgY = 0;
-		rateOffScreen = 0;
+		this.ra = ra;
+		reset();
 	}
 	
 	// double between -1 and 1 signifies valid read
@@ -45,6 +41,19 @@ public class FocusTracker {
 		clearCircles(circleOverlay);
 		drawCircle((float)curX, (float)curY, 20, 0xFFFFFF00, circleOverlay);
 		drawCircle((float)avgX, (float)avgY, 20, 0xFF00FFFF, circleOverlay);
+		ra.updateFocusRate(getFocusRate());
+	}
+	
+	public double getFocusRate() {
+		return (1-rateOffScreen) * 100;
+	}
+	
+	public void reset() {
+		curX = 0;
+		curY = 0;
+		avgX = 0;
+		avgY = 0;
+		rateOffScreen = 0;
 	}
 	
 	private void clearCircles(ViewGroup circleOverlay) {
@@ -55,7 +64,7 @@ public class FocusTracker {
 		if (circleOverlay == null) {
 			return;
 		}
-		CircleView cv = new CircleView(context, x, y, radius, color);
+		CircleView cv = new CircleView(ra, x, y, radius, color);
 		circleOverlay.addView(cv);
 	}
 	

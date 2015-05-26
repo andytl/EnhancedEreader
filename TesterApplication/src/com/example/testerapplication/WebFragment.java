@@ -1,8 +1,5 @@
 package com.example.testerapplication;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
@@ -18,12 +15,16 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Button;
+import android.widget.EditText;
 
-public class WebFragment extends Fragment implements OnTouchListener, CvCameraViewListener2, NewReadCallback{
+public class WebFragment extends Fragment implements OnTouchListener, OnClickListener, CvCameraViewListener2, NewReadCallback{
 
 //	private ReadingMonitor mMonitor;
 	private FocusTracker mMonitor;
@@ -68,12 +69,18 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 		return rootView;
 	}
 	
+	private void registerOnClick(int id, View rootView) {
+		Button button = (Button) rootView.findViewById(id);
+		button.setOnClickListener(this);
+	}
+	
 	@Override
 	public void onResume() {
 		super.onResume();
 		final View rootView = getView();
-		final Context context = getActivity();
 		mMonitor  = new FocusTracker(ra, rootView);
+		registerOnClick(R.id.go, rootView);
+		registerOnClick(R.id.save_data, rootView);
 		WebView wv = (WebView) rootView.findViewById(R.id.web_view);
 		wv.setWebViewClient(new WebViewClient());
 		wv.loadUrl("https://www.gutenberg.org/files/31547/31547-h/31547-h.htm");		
@@ -191,5 +198,40 @@ public class WebFragment extends Fragment implements OnTouchListener, CvCameraVi
 	private ReaderActivity getReaderActivity() {
 		return (ReaderActivity) getActivity();
 	}
+	
+	public boolean goBack() {
+		WebView webView = (WebView) getView().findViewById(R.id.web_view);
+		if (webView.canGoBack()) {
+			webView.goBack();
+			return true;
+		}
+		return false;
+	}
+	
+	@Override 
+	public void onClick(View v) {
+		if (v.getId() == R.id.go) {
+			View rootView = getView();
+			EditText et = (EditText)rootView.findViewById(R.id.url);
+			if (et != null) {
+				String url = et.getText().toString() + "";
+				hideKeyboard(ra);
+				WebView webView = (WebView)rootView.findViewById(R.id.web_view);
+				webView.loadUrl(url);
+			}
+		} else if (v.getId() == R.id.save_data){
+			mMonitor.getFocusRate();
+			//Send http POST to the website to save rate with current time
+			//Reset the monitor
+			
+			mMonitor.reset();
+		}
+	}
+	
+	private void hideKeyboard(Activity activity) {
+		InputMethodManager imm = (InputMethodManager)activity.getSystemService(
+		      Context.INPUT_METHOD_SERVICE);
+		imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
+}
 	
 }

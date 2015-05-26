@@ -9,32 +9,34 @@ import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.RelativeLayout;
 
 import com.example.testerapplication.display.CircleView;
 
-public class CalibrateFragment extends Fragment implements CvCameraViewListener2, OnTouchListener, OnClickListener {
+public class CalibrateFragment extends Fragment implements CvCameraViewListener2, OnTouchListener{
 
-	private Mat                    mGrayT;
-	private Mat                    mGray;
+	private Mat mGrayT;
+	private Mat mGray;
+	private Mat mBlack = null;
     public CameraBridgeViewBase   mOpenCvCameraView = null;
-//    private double curX;
-//    private double curY;
 	public boolean validFrame = false;
 	private ReaderActivity ra;
     private CVTaskBuffer<MatPoint> tasks;
     private EyeTrainerThread trainerThread;
     private CalibrationState cState;
+    private boolean visible = true;
     
     
     public CalibrateFragment() {
@@ -60,8 +62,6 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 		mOpenCvCameraView.setCvCameraViewListener(this);
 		mOpenCvCameraView.setCameraIndex(1);
 		rootView.setOnTouchListener(this);
-		Button button = (Button) rootView.findViewById(R.id.complete_calibrate);
-		button.setOnClickListener(this);
 		return rootView;
 	}
 	
@@ -71,7 +71,19 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 		if (ra.connected) {
 			enableCameraView();
 		}
-		//TODO: figure out if we need to terminate this thread
+		cState = new CalibrationState();
+		updateCircle(cState.getCurrentCoordinate());
+//		//TODO: figure out if we need to terminate this thread
+//		cState = new CalibrationState();
+//		trainerThread = new EyeTrainerThread(tasks, cState, this, ra);
+//		trainerThread.start();
+//		updateCircle(cState.getCurrentCoordinate());
+//		validFrame = true;
+		new StartCalibrationDialogFragment().show(getFragmentManager(), "start_callibartion");
+//		startCalibration();
+	}
+	
+	private void startCalibration() {
 		cState = new CalibrationState();
 		trainerThread = new EyeTrainerThread(tasks, cState, this, ra);
 		trainerThread.start();
@@ -112,7 +124,7 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 	private void drawCircle(Context context, View rootView, double x, double y) {
 		RelativeLayout rl = (RelativeLayout) rootView.findViewById(R.id.calibrate_circle_overlay);
 		CircleView cv = new CircleView(context, (int)x, (int)y, 100, 0xFFFF0000);
-		rl.removeAllViews();
+//		rl.removeAllViews();
 		rl.addView(cv);
 	}
 	
@@ -131,62 +143,21 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 		double top = v.getTop();
 		return (y/(bottom-top)) * 2 -1;
 	}
-
-	@Override
-	public boolean onTouch(View v, MotionEvent event) {
-//		if (event.getAction() != MotionEvent.ACTION_MOVE) {
-			drawCircle(ra, v, event.getX(), event.getY());
-//			curX = interpolateX(event.getX(), v);
-//			curY = interpolateY(event.getY(), v);
-			validFrame = true;
-			return true;
-//		}
-//		return false;
-	}	
+//
+//	@Override
+//	public boolean onTouch(View v, MotionEvent event) {
+////		if (event.getAction() != MotionEvent.ACTION_MOVE) {
+//			drawCircle(ra, v, event.getX(), event.getY());
+////			curX = interpolateX(event.getX(), v);
+////			curY = interpolateY(event.getY(), v);
+//			validFrame = true;
+//			return true;
+////		}
+////		return false;
+//	}	
 	
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-//		Mat result = null;
-//		mGray = inputFrame.gray();
-//		Mat temp1 = mGray.t();
-//		mGrayT = mGray.t();
-//		Core.flip(temp1,  mGrayT,  -1);
-//		Imgproc.resize(mGrayT, mGray, mGray.size());
-//		temp1.release();
-//		mGrayT.release();
-//		if (validFrame) {
-//			validFrame = false;
-//			verifyRange();
-//			tasks.addTask(new MatPoint(mGray, curX, curY));
-//			result =  mGray;
-//		}
-//		
-//		return result;
-		
-		
-//		mGray = inputFrame.gray();
-//		Mat square = new Mat(mGray, getCropArea(mGray));
-//		square = square.clone();
-//		Mat tempT = square.t();
-//		Mat squareT = square.t();
-//		Core.flip(tempT,  squareT, -1);
-//		if (validFrame) {
-//			validFrame = false;
-//			verifyRange();
-//			tasks.addTask(new MatPoint(squareT, curX, curY));
-//		}
-//		square.release();
-//		tempT.release();
-//		Imgproc.resize(squareT, mGray, mGray.size());
-//		return mGray;
-//		
-//		
-		
-		if (!cState.initialized()) {
-			View rootView = getView();
-			cState.setDimensions(rootView.getWidth(), rootView.getHeight());
-		}
-		
 		mGray = inputFrame.gray();
 		Mat square = new Mat(mGray, getCropArea(mGray));
 		square = square.clone();
@@ -197,17 +168,29 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 		square.release();
 		tempT.release();
 		Imgproc.resize(squareT, mGray, mGray.size());
-		if (validFrame) {
-			validFrame = false;
-			DoublePoint dp = cState.getCurrentCoordinate();
-			View rootView = getView();
-			tasks.addTask(new MatPoint(squareT, interpolateX(dp.x, rootView), interpolateY(dp.y, rootView), cState.getPositionID()));
-		} else {
-			squareT.release();
+		if (cState !=  null) {
+			if (!cState.initialized()) {
+				View rootView = getView();
+				cState.setDimensions(rootView.getWidth(), rootView.getHeight());
+			}
+			if (validFrame) {
+				validFrame = false;
+				DoublePoint dp = cState.getCurrentCoordinate();
+				View rootView = getView();
+				tasks.addTask(new MatPoint(squareT, interpolateX(dp.x, rootView), interpolateY(dp.y, rootView), cState.getPositionID()));
+			} else {
+				squareT.release();
+			}
 		}
-		return mGray;	
-		
-		
+		if (visible) {
+			return mGray;
+		} else {
+			if (mBlack == null) {
+				mBlack = Mat.zeros(mGray.size(), 0);
+			}
+			mGray.release();
+			return mBlack;
+		}		
 	}
 	
 	private Rect getCropArea(Mat m) {
@@ -221,12 +204,30 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 		}
 	}
 	
+	private void toggleCameraView() {
+		visible = !visible;
+	}
+
 	@Override
-	public void onClick(View v) {
-		if (v.getId() == R.id.complete_calibrate) {
-			NativeInterface.trainNeuralNetwork(ra.createLocalFile(ra.getUserName()));
-			ra.enterWebMode();
-		}
+	public boolean onTouch(View v, MotionEvent event) {
+		toggleCameraView();
+		return false;
 	}
 	
+	private class StartCalibrationDialogFragment extends DialogFragment {
+		@Override
+	    public Dialog onCreateDialog(Bundle savedInstanceState) {
+	        
+	        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+	        builder.setTitle("Calibration Phase")
+	        	   .setMessage("Follow the red dot with your eyes")
+	               .setPositiveButton("Start Callibration", new DialogInterface.OnClickListener() {
+	                   public void onClick(DialogInterface dialog, int id) {
+	                	   startCalibration();
+	                   }
+	               });
+	        return builder.create();
+	    }
+
+	}
 }

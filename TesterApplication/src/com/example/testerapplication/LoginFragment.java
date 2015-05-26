@@ -58,9 +58,23 @@ public class LoginFragment extends Fragment implements OnItemClickListener, OnCl
 			long id) {
 		UserProfile user = profiles.get(userNames[position]);
 		if (user != null) {
-			ReaderActivity ra = getReaderActivity();
+			final ReaderActivity ra = getReaderActivity();
+			ra.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					ra.createDialog("Loading...");
+					ra.displayDialog();
+				}
+			});
 			hideKeyboard(ra);
 			ra.selectUser(user);
+			ra.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					ra.enterWebMode();
+					ra.cancelDialog();
+				}
+			});
 		}
 	}
 
@@ -68,10 +82,23 @@ public class LoginFragment extends Fragment implements OnItemClickListener, OnCl
 	@Override
 	public void onClick(View v) {
 		if (v.getId() == R.id.new_user) {
-			ReaderActivity ra = getReaderActivity();
+			final ReaderActivity ra = getReaderActivity();
 			EditText et = (EditText) ra.findViewById(R.id.new_user_name);
 			hideKeyboard(ra);
+			ra.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					ra.createDialog("Loading...");
+					ra.displayDialog();
+				}
+			});
 			ra.createNewUser(et.getText().toString() + "");
+			ra.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					ra.cancelDialog();
+				}
+			});
 		}
 	}
 	
