@@ -21,6 +21,9 @@ public class CVTaskBuffer<E> {
 		return tasks.isEmpty();
 	}
 	
+	public int getSize() {
+		return tasks.size();
+	}
 	public E getTask() throws InterruptedException {
 		lock.lock();
 		try {

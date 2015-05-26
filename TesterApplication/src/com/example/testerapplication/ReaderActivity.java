@@ -12,6 +12,8 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 
 import android.app.Activity;
+import android.app.FragmentManager;
+import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -22,6 +24,7 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 
 public class ReaderActivity extends Activity {
@@ -35,6 +38,8 @@ public class ReaderActivity extends Activity {
 	
 	private DbHelper dbHelper;
 	private UserProfile currentUser;
+	
+	private ProgressDialog dialog = null;
 	
 	public File mCascadeFace;
 	public File mCascadeEyes;
@@ -185,9 +190,11 @@ public class ReaderActivity extends Activity {
 	
 	public void selectUser(UserProfile user) {
 		currentUser = user;
+		NativeInterface.loadUserProfile(createLocalFile(user.getUserName()));
 		getFragmentManager().beginTransaction()
-			.add(R.id.container, new WebFragment(), WEB_MODE)
+			.replace(R.id.container, new WebFragment(), WEB_MODE)
 			.commit();
+		
 	}
 	
 	public void createNewUser(String userName) {
@@ -301,6 +308,58 @@ public class ReaderActivity extends Activity {
 		return mHandler;
 	}
 	
+	public String getUserName() {
+		if (currentUser != null) {
+			return currentUser.getUserName();
+		} else {
+			return null;
+		}
+	}
+	
+	
+	public String createLocalFile(String userName) {
+		return getFilesDir() + "/" + userName + ".fann";
+	}
+	
 	/* ****************************************/
+
+	public void createDialog(String text) {
+		dialog = new ProgressDialog(this);
+		dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        dialog.setMessage("Loading. Please wait...");
+        dialog.setIndeterminate(true);
+	}
+	
+	public void cancelDialog() {
+		dialog.cancel();
+	}
+	
+	public void displayDialog() {
+		dialog.show();
+	}
+	
+	@Override 
+	public void onBackPressed() {
+		FragmentManager fm = getFragmentManager();
+		WebFragment wf = (WebFragment) fm.findFragmentByTag(WEB_MODE);
+		if (!(wf != null && wf.isVisible() && wf.goBack())) {
+			LoginFragment lf = (LoginFragment) fm.findFragmentByTag(LOGIN_MODE);
+			if (lf == null || !lf.isVisible()) {
+				fm.beginTransaction()
+					.replace(R.id.container,  new LoginFragment(), LOGIN_MODE)
+					.commit();
+			} else {
+				super.onBackPressed();
+			}
+		}
+	}	
+	
+	public void updateFocusRate(double focusRate) {
+		TextView tv = (TextView) findViewById(R.id.display_focus_rate);
+		if (tv != null) {
+			tv.setText("Focus Rate: " + focusRate);
+		}
+	}
 	
 }
+

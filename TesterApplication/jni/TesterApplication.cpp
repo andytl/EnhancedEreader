@@ -45,6 +45,18 @@ extern "C" {
 		return 1;
 	}
 
+	void GetJStringContent(JNIEnv *AEnv, jstring AStr, std::string &ARes)
+	{
+		  if (!AStr) {
+		    ARes.clear();
+		    return;
+		  }
+
+		  const char *s = AEnv->GetStringUTFChars(AStr,NULL);
+		  ARes=s;
+		  AEnv->ReleaseStringUTFChars(AStr,s);
+	}
+
 	JNIEXPORT jint JNICALL Java_com_example_testerapplication_NativeInterface_nativeTrainOnFrame
 		(JNIEnv *env, jobject obj, jlong mat, jdouble x, jdouble y)
 	{
@@ -55,10 +67,22 @@ extern "C" {
 	}
 
 	JNIEXPORT jint JNICALL Java_com_example_testerapplication_NativeInterface_nativeTrainNeuralNet
-		(JNIEnv *env, jobject obj)
+		(JNIEnv *env, jobject obj, jstring saveLocation)
 	{
-		net_train();
+		std::string str;
+		GetJStringContent(env, saveLocation, str);
+		net_train(str);
 		return 1;
 	}
+
+	JNIEXPORT void JNICALL Java_com_example_testerapplication_NativeInterface_nativeLoadNeuralNet
+		(JNIEnv *env, jobject obj, jstring filename)
+	{
+		std::string str;
+		GetJStringContent(env, filename, str);
+		load_net(str);
+	}
+
+
 
 }

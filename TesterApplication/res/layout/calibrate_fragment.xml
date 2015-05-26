@@ -14,14 +14,7 @@
 		android:layout_height="fill_parent"
 		android:id="@+id/web_camera_view" />
 	
-	<Button
-	    android:layout_width="match_parent"
-	    android:layout_height="wrap_content"
-	    android:text="Click here to finish calibration"
-	    android:id="@+id/complete_calibrate"
-		android:alpha="1"
-		android:background="#ffffffff"
-		/>
+
 	
 	<RelativeLayout
         android:id="@+id/calibrate_circle_overlay"
