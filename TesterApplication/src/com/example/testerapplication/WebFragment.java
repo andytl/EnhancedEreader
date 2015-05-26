@@ -78,7 +78,7 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 	public void onResume() {
 		super.onResume();
 		final View rootView = getView();
-		mMonitor  = new FocusTracker(ra, rootView);
+		mMonitor  = new FocusTracker(ra, rootView, R.id.web_view);
 		registerOnClick(R.id.go, rootView);
 		registerOnClick(R.id.save_data, rootView);
 		WebView wv = (WebView) rootView.findViewById(R.id.web_view);

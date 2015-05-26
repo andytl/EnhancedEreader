@@ -413,15 +413,14 @@ int cppTrainOnFrame(const cv::Mat *frame, double x, double y) {
 
 cv::Point2d cppOnNewFrame(cv::Mat* frame) {
 	//cv::putText(zoomed, std::to_string(click_data.x) + ", " + std::to_string(click_data.y), cv::Point(20, 80), 1, 1, CV_RGB(0,255,0));
-	LOGD("OnNewFrame -- enter");
-	LOGD("%p", &net);
+	if (printmethods) LOGD("OnNewFrame -- enter");
+
 	cv::Mat *eye_data = processFrame(frame);
 	if (eye_data == NULL) {
 		LOGD("eye data is null");
 		return cv::Point2d(-10, -10);
 	}
 	double *in = new double[eye_size.area() / 4];
-	LOGD("num pixels: %d", eye_size.area());
 	for (unsigned i = 0; i < eye_size.area() / 4; i++) {
 		in[i] = (eye_data->data[i] / 128.) - 1.;
 		if (in[i] < -1 || in[i] > 1) {
@@ -430,13 +429,11 @@ cv::Point2d cppOnNewFrame(cv::Mat* frame) {
 	}
 	double *out = net.run(in);
 	//cv::putText(zoomed, std::to_string(out[0]) + ", " + std::to_string(out[1]), cv::Point(20, 100), 1, 1, CV_RGB(0,255,255));
-	LOGD("%lf, %lf", out[0], out[1]);
-	LOGD("%p", out);
 	cv::Point2d outpt(out[0], out[1]);
 	//cv::circle(zoomed, guesspt, 1, CV_RGB(0,255,255), 1);
 	delete in;
 	delete eye_data;
-	LOGD("OnNewFrame -- exit");
+	if (printmethods) LOGD("OnNewFrame -- exit");
 	return outpt;
 }
 

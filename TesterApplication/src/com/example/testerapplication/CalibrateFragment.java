@@ -122,7 +122,7 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 		mGray.release();
 		mGrayT.release();		
 	}
-
+	
 	private void drawCircle(Context context, View rootView, double x, double y) {
 		if (rootView != null) {
 			RelativeLayout rl = (RelativeLayout) rootView.findViewById(R.id.calibrate_circle_overlay);
