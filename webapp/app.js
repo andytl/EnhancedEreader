@@ -5,6 +5,8 @@
  *
  */
 
+var util = require('util');
+
 // Setup Dependencies
 var http = require('http');
 
