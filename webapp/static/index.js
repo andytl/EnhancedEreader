@@ -21,8 +21,7 @@ function loadUser() {
   var username = $(this).val();
   $.get('api/entry/' + username)
     .done(function(data) {
-      var svg = $('<svg>');
-      $('#visualization').empty().append(svg);
+      $('#visualization svg').empty();
       var series = {
         key: data.username,
         values: data.entries.map(function(d) {
@@ -32,14 +31,14 @@ function loadUser() {
             };
           })
       };
-      plotData([series], svg[0]);
+      plotData([series]);
     })
     .fail(function(err) {
       console.log(err);
     });
 }
 
-function plotData(data, domElt) {
+function plotData(data) {
   nv.addGraph(function() {
     var chart = nv.models.lineChart()
                   .margin({left: 100})  //Adjust chart margins to give the x-axis some breathing room.
@@ -60,7 +59,7 @@ function plotData(data, domElt) {
 
     /* Done setting the chart up? Time to render it!*/
 
-    d3.select(domElt)    //Select the <svg> element you want to render the chart in.   
+    d3.select('#visualization svg')    //Select the <svg> element you want to render the chart in.   
         .datum(data)           //Populate the <svg> element with chart data...
         .call(chart);          //Finally, render the chart!
 
