@@ -6,9 +6,10 @@ public class EyeTrackerThread extends Thread implements Runnable {
 
 	private ReaderActivity ra;
 	private NewReadCallback nrc;
-	private CVTaskBuffer<Mat> tasks;
+	private CVTaskBuffer<MatTime> tasks;
+	private static final int MAX_TIME = 500;
 	
-	public EyeTrackerThread(ReaderActivity ra, NewReadCallback nrc, CVTaskBuffer<Mat> tasks) {
+	public EyeTrackerThread(ReaderActivity ra, NewReadCallback nrc, CVTaskBuffer<MatTime> tasks) {
 		this.ra = ra;
 		this.nrc = nrc;
 		this.tasks = tasks;
@@ -19,7 +20,13 @@ public class EyeTrackerThread extends Thread implements Runnable {
 		Mat mat;
 		while (true) {
 			try {
-				mat = tasks.getTask();
+				MatTime mt = tasks.getTask();
+				if (System.currentTimeMillis() - mt.time > MAX_TIME) {
+					System.err.println("skipping mat");
+					mt.mat.release();
+					continue;
+				}
+				mat = mt.mat;
 			} catch (InterruptedException e) {
 				continue;
 			}

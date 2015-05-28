@@ -1,5 +1,6 @@
 package com.example.testerapplication;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -48,6 +49,7 @@ public class LoginFragment extends Fragment implements OnItemClickListener, OnCl
 			userNames[i] = iter.next();
 			i++;
 		}
+		Arrays.sort(userNames);
 		ArrayAdapter<String> adapter = 	new ArrayAdapter<String>(ra, R.layout.user_list_item, userNames);
 		userList.setAdapter(adapter);
         userList.setOnItemClickListener(this);

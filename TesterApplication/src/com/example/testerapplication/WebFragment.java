@@ -30,20 +30,22 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 	private FocusTracker mMonitor;
 	private Mat                     mRgba;
 	private Mat                     mGray;
-	private Mat 					mSquareT;
+//	private Mat 					mSquareT;
     public CameraBridgeViewBase   mOpenCvCameraView = null;
+    
+    public static int FRAME_RATE = 0;
     
     private ReaderActivity ra;
     
     private int frameCount;
     
-    private CVTaskBuffer<Mat> tasks;
+    private CVTaskBuffer<MatTime> tasks;
     private EyeTrackerThread trackerThread;
     private boolean validFrame;
 	
     public WebFragment() {
     	super();
-    	tasks = new CVTaskBuffer<Mat>();
+    	tasks = new CVTaskBuffer<MatTime>();
     	validFrame = false;
     	frameCount = 0;
     }
@@ -83,7 +85,8 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 		registerOnClick(R.id.save_data, rootView);
 		WebView wv = (WebView) rootView.findViewById(R.id.web_view);
 		wv.setWebViewClient(new WebViewClient());
-		wv.loadUrl("https://www.gutenberg.org/files/31547/31547-h/31547-h.htm");		
+//		wv.loadUrl("https://www.gutenberg.org/files/31547/31547-h/31547-h.htm");
+		wv.loadUrl("http://www.madrona.com");
 		rootView.post(new Runnable() {
 			@Override
 			public void run() {
@@ -148,7 +151,7 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 	public void onCameraViewStarted(int width, int height) {
 	    mGray = new Mat();
         mRgba = new Mat();
-        mSquareT = new Mat();
+//        mSquareT = new Mat();
 	}
 
 	@Override
@@ -174,13 +177,15 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 		square.release();
 		tempT.release();
 		Imgproc.resize(squareT, mGray, mGray.size());
-		if (validFrame || frameCount >= 10) {
+		if (validFrame || frameCount >= FRAME_RATE) {
 			validFrame = false;
-			tasks.addTask(squareT);
+			tasks.addTask(new MatTime(squareT, System.currentTimeMillis()));
 		} else {
 			squareT.release();
 		}
-		frameCount %= 10;
+		if (FRAME_RATE != 0) {
+			frameCount %= FRAME_RATE;
+		}
 		return mGray;		
 	}
 	

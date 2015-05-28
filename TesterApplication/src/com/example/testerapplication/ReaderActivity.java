@@ -228,6 +228,7 @@ public class ReaderActivity extends Activity {
 			try {
 				String sql = "Select " + DbHelper.USER_ID;
 				sql += " from " + DbHelper.USER_TABLE_NAME;
+				sql += " order by " + DbHelper.USER_ID;
 				Cursor cursor = db.rawQuery(sql, null);
 				if (cursor != null && cursor.getCount() > 0) {
 					cursor.moveToFirst();
