@@ -3,12 +3,17 @@ package com.example.testerapplication;
 public class CalibrationState {
 	private int curRow;
 	private int curCol;
-	private final int numRow = 21;
-	private final int numCol = 46;
+	private final int numRows = 15;
+	private final int numCols = 35;
 	private double width;
 	private double height;
 	private boolean complete;
+	private String phase;
+	private static String rows = "ROWS";
+	private static String cols = "COLS";
 	private int position;
+	private static int FRAMES_PER_POSITION = 2;
+	private int curFrames;
 	
 	public CalibrationState() {
 		this(-1, -1);
@@ -17,10 +22,12 @@ public class CalibrationState {
 	public CalibrationState(double width, double height) {
 		this.width = width;
 		this.height = height;
+		phase = rows;
 		curRow = 0;
 		curCol = 0;
 		complete = false;
 		position = 0;
+		curFrames = 0;
 	}
 	
 	public boolean initialized() {
@@ -38,27 +45,39 @@ public class CalibrationState {
 	
 	// called everytime there is a successful scan
 	public void advancePosition(int position) {	
+		curFrames++;
  		if (this.position > position) {
  			return;
  		}
- 		
-		if (curRow % 2 == 0) {
-			// going to the right
-			if (curCol < numCol) {
-				curCol++;
+ 		if (curFrames < FRAMES_PER_POSITION) {
+ 			return;
+ 		}
+ 		curFrames = 0;
+ 		if (phase.equals(rows)) {
+			if (curRow % 2 == 0) {
+				// going to the right
+				if (curCol < numCols) {
+					curCol++;
+				} else {
+					curRow++;
+				}			
 			} else {
-				curRow++;
-			}			
-		} else {
-			// going to the left
-			if (curCol > 0) {
-				curCol--;
-			} else {
-				curRow++;
+				// going to the left
+				if (curCol > 0) {
+					curCol--;
+				} else {
+					curRow++;
+				}
 			}
-		}
-		position++;
-		complete = curRow >= numRow;
+			this.position++;
+			System.err.println(position);
+//			uncomment to loop twice
+//			if (position == numRows * numCols) {
+//				curCol = 0; 
+//				curRow = 0;
+//			}
+			complete = curRow >= numRows;
+ 		}
 	}
 	
 	public boolean isComplete() {
@@ -66,7 +85,7 @@ public class CalibrationState {
 	}
 	
 	public DoublePoint getCurrentCoordinate() {
-		return new DoublePoint(width * curCol/numCol, height * curRow/numRow);
+		return new DoublePoint(width * curCol/numCols, height * curRow/numRows);
 	}
 	
 }

@@ -20,6 +20,9 @@ public class FocusTracker {
 	private int velocity;
 	private int scrollId;
 	
+	private double avgUpdate = .85;
+	private double offScreenUpdate = .99;
+	
 	
 	public FocusTracker(ReaderActivity ra, View rootView, int scrollId) {
 		this.rootView = rootView;
@@ -32,17 +35,17 @@ public class FocusTracker {
 	public void newReadPosition(double x, double y) {
 		if (outOfRange(x, y)) {
 			//update moving average
-			rateOffScreen = rateOffScreen * .99 + .01; 
+			rateOffScreen = rateOffScreen * offScreenUpdate + 1 -offScreenUpdate; 
 			return;
 		} else {
-			rateOffScreen = rateOffScreen * .99;
+			rateOffScreen = rateOffScreen * offScreenUpdate;
 		}
 		double width = rootView.getWidth();
 		double height = rootView.getHeight();
 		curX = interpolateValue(x, width);
 		curY = interpolateValue(y, height);
-		avgX = avgX * .5 + curX * .5;
-		avgY = avgY * .5 + curY * .5;
+		avgX = avgX * avgUpdate + curX * (1-avgUpdate);
+		avgY = avgY * avgUpdate + curY * (1-avgUpdate);
 		if (avgY < height/3.0) {
 			velocity--;
 		}
@@ -51,8 +54,8 @@ public class FocusTracker {
 		}
 		ViewGroup circleOverlay = (ViewGroup)rootView.findViewById(R.id.web_circle_overlay);
 		clearCircles(circleOverlay);
-		drawCircle((float)curX, (float)curY, 20, 0xFFFFFF00, circleOverlay);
-		drawCircle((float)avgX, (float)avgY, 20, 0xFF00FFFF, circleOverlay);
+		drawCircle((float)avgX, (float)avgY, 30, 0xFF00FFFF, circleOverlay);
+		drawCircle((float)curX, (float)curY, 25, 0xFFFFFF00, circleOverlay);
 		ra.updateFocusRate(getFocusRate());
 //		if (velocity > 5 || velocity < 5) {
 //			ViewGroup vg = (ViewGroup) rootView.findViewById(scrollId);
