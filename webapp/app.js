@@ -33,11 +33,21 @@ app.use(function(req, res, next) {
 });
 app.use(function(err, req, res, next) {
   // Catch all to send an error
-  res.status(err.status).json({
-    'status': err.status,
-    'message': err.message,
+  var why = {
     'stacktrace': err.stack
-  });
+  };
+  if (err.status) {
+    res.status(err.status);
+    why.status = err.status;
+  } else {
+    // Other error is an internal fault
+    res.status(500);
+  }
+  if (err.message) {
+    // Append message if one included
+    why.message = err.message;
+  }
+  res.json(why);
 });
 
 module.exports = app;
