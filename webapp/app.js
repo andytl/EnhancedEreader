@@ -10,8 +10,9 @@ var util = require('util');
 // Setup Dependencies
 var http = require('http');
 
-// Setup Core Module
+// Setup Modules
 var api = require('./api.js');
+var fann = require('./fann.js');
 
 // Setup Express
 var express = require('express');
@@ -21,6 +22,7 @@ var app = express();
 app.use(bodyParser.json());
 
 app.use('/api', api);
+app.use('/fann', fann);
 
 app.use(express.static('static'));
 
