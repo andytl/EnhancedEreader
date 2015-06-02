@@ -190,15 +190,16 @@ public class ReaderActivity extends Activity {
 	
 	public void selectUser(UserProfile user) {
 		currentUser = user;
-		NativeInterface.loadUserProfile(createLocalFile(user.getUserName()));
-		getFragmentManager().beginTransaction()
-			.replace(R.id.container, new WebFragment(), WEB_MODE)
-			.commit();
-		
+		if (user != null) {
+			NativeInterface.loadUserProfile(createLocalFile(user.getUserName()));
+			getFragmentManager().beginTransaction()
+				.replace(R.id.container, new WebFragment(), WEB_MODE)
+				.commit();
+		}
 	}
 	
-	public void createNewUser(String userName) {
-		UserProfile user = new UserProfile(userName);
+	public void createNewUser(String userName, String password) {
+		UserProfile user = new UserProfile(userName, password);
 		currentUser = user;
 		boolean result = dbHelper.addUser(currentUser);
 		if (result) {
@@ -226,7 +227,7 @@ public class ReaderActivity extends Activity {
 		} else {
 			db.beginTransaction();
 			try {
-				String sql = "Select " + DbHelper.USER_ID;
+				String sql = "Select " + DbHelper.USER_ID + ", " + DbHelper.PASSWORD;
 				sql += " from " + DbHelper.USER_TABLE_NAME;
 				sql += " order by " + DbHelper.USER_ID;
 				Cursor cursor = db.rawQuery(sql, null);
@@ -234,7 +235,8 @@ public class ReaderActivity extends Activity {
 					cursor.moveToFirst();
 					while (!cursor.isAfterLast()) {
 						String userName = cursor.getString(0);
-						UserProfile user = new UserProfile(userName);
+						String password = cursor.getString(1);
+						UserProfile user = new UserProfile(userName, password);
 						result.put(userName, user);
 						cursor.moveToNext();
 					}

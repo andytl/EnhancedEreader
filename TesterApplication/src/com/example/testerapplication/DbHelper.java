@@ -10,11 +10,13 @@ public class DbHelper extends SQLiteOpenHelper{
     public static final String DATABASE_NAME = "EnhancedEreader.db";
     public static final String USER_TABLE_NAME = "USER";
     public static final String USER_ID = "uid";
+    public static final String PASSWORD = "password";
     public static final String SQL_CREATE_USERS_TABLE = createUsersTable();
 
     private static String createUsersTable() {
     	String result = "CREATE TABLE " + USER_TABLE_NAME + " (";
-		result += USER_ID + " TEXT PRIMARY KEY)";
+		result += USER_ID + " TEXT PRIMARY KEY, "
+				+ PASSWORD + " TEXT)";
 	    return result;
 	}
     
@@ -37,6 +39,7 @@ public class DbHelper extends SQLiteOpenHelper{
 		SQLiteDatabase db = this.getWritableDatabase();
 		ContentValues values = new ContentValues();
 		values.put(USER_ID, user.getUserName());
+		values.put(PASSWORD, user.getPassword());
 		db.beginTransaction();
 		try {
 			long newRowId = db.insert(USER_TABLE_NAME, null, values);

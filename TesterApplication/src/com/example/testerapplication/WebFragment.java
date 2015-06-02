@@ -1,5 +1,7 @@
 package com.example.testerapplication;
 
+import java.util.Map;
+
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
@@ -87,16 +89,7 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 		wv.setWebViewClient(new WebViewClient());
 //		wv.loadUrl("https://www.gutenberg.org/files/31547/31547-h/31547-h.htm");
 		wv.loadUrl("http://www.madrona.com");
-		rootView.post(new Runnable() {
-			@Override
-			public void run() {
-//				mMonitor.createColorOverlay(rootView, context);
-//				createOverlay(rootView, R.id.web_color_overlay);
-			}
-		});
-//		if (((ReaderActivity)getActivity()).connected) {
-			enableCameraView();
-//		}
+		enableCameraView();
 		trackerThread = new EyeTrackerThread(ra, this, tasks);
 		trackerThread.start();
 	}
@@ -106,33 +99,9 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 			mOpenCvCameraView.enableView();
 		}
 	}
-	
-//	private void createOverlay(View rootView, int tableId) {
-//		int top = rootView.getTop();
-//		int bottom = rootView.getBottom();
-//		int left = rootView.getLeft();
-//		int right = rootView.getRight();
-//		System.out.println("Overlay dims:");
-//		System.out.println("\tleft: \t" + left );
-//		System.out.println("\tright: \t" + right );
-//		System.out.println("\ttop: \t" + top );
-//		System.out.println("\tbottom: \t" + bottom );
-//		Context context = getActivity();
-//		TableLayout table = (TableLayout)rootView.findViewById(tableId);
-//		for (int i = 0; i < (bottom -top)/10; i++) {
-//			TableRow tr = new TableRow(context);
-//			tr.setLayoutParams(new TableRow.LayoutParams(right-left, 10));
-//			tr.setBackgroundColor(0x00000000);
-//			TextView tv = new TextView(context);
-//			tv.setText("");
-//			tr.addView(tv);
-//			table.addView(tr);
-//		}
-//	}
-	
+
 	// Takes a point between -1 and 1
 	public void newReadPosition(double x, double y) {
-//		mMonitor.newReadPosition(getView(), x, y);
 		mMonitor.newReadPosition(x, y);
 	}
 	
@@ -151,7 +120,6 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 	public void onCameraViewStarted(int width, int height) {
 	    mGray = new Mat();
         mRgba = new Mat();
-//        mSquareT = new Mat();
 	}
 
 	@Override
@@ -225,10 +193,13 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 				webView.loadUrl(url);
 			}
 		} else if (v.getId() == R.id.save_data){
-			mMonitor.getFocusRate();
-			//Send http POST to the website to save rate with current time
-			//Reset the monitor
+			FocusData fd = mMonitor.getData();
+			System.out.println(fd);
 			
+			//Send http POST to the website to save rate with current time
+			
+			
+			//Reset the monitor
 			mMonitor.reset();
 		}
 	}

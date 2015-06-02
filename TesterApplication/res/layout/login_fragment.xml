@@ -7,17 +7,23 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin">
-    
+   
+      <EditText 
+	        android:id="@+id/new_user_name"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:hint="@string/new_user_et_hint"/>
     <LinearLayout 
     	android:layout_width="match_parent"	
     	android:layout_height="wrap_content"
     	android:orientation="horizontal">
-	    <EditText 
-	        android:id="@+id/new_user_name"
-	        android:layout_width="fill_parent"
-	        android:layout_weight="1"
-	        android:layout_height="wrap_content"
-	        android:hint="@string/new_user_et_hint"/>
+	   <EditText 
+        android:id="@+id/new_password"
+        android:layout_width="match_parent"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:hint="Type Password"
+        android:inputType="textPassword"/>
 	    <Button
 	        android:id="@+id/new_user"
 	        android:layout_width="wrap_content"
