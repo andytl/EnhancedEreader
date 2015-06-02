@@ -1,6 +1,8 @@
 package com.example.testerapplication;
 
-import android.content.Context;
+import java.util.HashMap;
+import java.util.Map;
+
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -10,7 +12,19 @@ public class FocusTracker {
 
 	public static final double MAX_AVERAGE_RANGE = 100;
 	
+	public static final String FOCUS_RATE = "FOCUS_RATE";
+	public static final String TOTAL_TIME = "TOTAL_TIME";
+	public static final String TIME_READING = "TIME_READING";
+	
+	
 	private double rateOffScreen;
+	private long startTime = -1;
+	private long endTime = -1;
+	private long timeReading;
+	private long totalTime;
+	private long tempTime = -1;
+	private boolean curFocused;
+	
 	private double curX;
 	private double curY;
 	private double avgX;
@@ -28,16 +42,34 @@ public class FocusTracker {
 		this.rootView = rootView;
 		this.ra = ra;
 		this.scrollId = scrollId;
+		curFocused = false;
 		reset();
 	}
 	
 	// double between -1 and 1 signifies valid read
 	public void newReadPosition(double x, double y) {
+		if (startTime < 0) {
+			startTime = System.currentTimeMillis();
+		} 
+		if (tempTime < 0) {
+			tempTime = System.currentTimeMillis();
+		}
 		if (outOfRange(x, y)) {
 			//update moving average
 			rateOffScreen = rateOffScreen * offScreenUpdate + 1 -offScreenUpdate; 
+			if  (curFocused) {
+				long time = System.currentTimeMillis() - tempTime;
+				tempTime = System.currentTimeMillis();
+				timeReading += time;
+			}
+			
+			curFocused = false;
 			return;
 		} else {
+			if (!curFocused) {
+				tempTime = System.currentTimeMillis();
+			}
+			curFocused = true;
 			rateOffScreen = rateOffScreen * offScreenUpdate;
 		}
 		double width = rootView.getWidth();
@@ -73,10 +105,26 @@ public class FocusTracker {
 	}
 	
 	public double getFocusRate() {
-		return (1-rateOffScreen) * 100;
+//		return (1-rateOffScreen) * 100;
+		return timeReading*1.0/totalTime;
+	}
+	
+	public FocusData getData() {
+		endTime = System.currentTimeMillis();
+		totalTime = endTime - startTime;
+		Map<String, Object> result = new HashMap<String, Object>();
+		result.put(FOCUS_RATE, getFocusRate());
+		result.put(TOTAL_TIME, totalTime);
+		result.put(TIME_READING, timeReading);
+		
+		return new FocusData(totalTime, timeReading, getFocusRate(), System.currentTimeMillis());
 	}
 	
 	public void reset() {
+		totalTime = 0;
+		timeReading = 0;
+		startTime = -1;
+		endTime  = -1;
 		curX = 0;
 		curY = 0;
 		avgX = 0;

@@ -6,8 +6,12 @@ import java.util.Map;
 import java.util.Set;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -60,7 +64,16 @@ public class LoginFragment extends Fragment implements OnItemClickListener, OnCl
 			long id) {
 		UserProfile user = profiles.get(userNames[position]);
 		if (user != null) {
-			final ReaderActivity ra = getReaderActivity();
+			PasswordDialog passwordDialog = new PasswordDialog(user);
+			passwordDialog.show(getFragmentManager(), "PASSWORD_DIALOG");
+		}
+	}
+	
+	private void selectUser(UserProfile user) {
+		final ReaderActivity ra = getReaderActivity();
+		if (user == null) {
+			ra.selectUser(null);
+		} else {
 			ra.runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
@@ -79,13 +92,52 @@ public class LoginFragment extends Fragment implements OnItemClickListener, OnCl
 			});
 		}
 	}
+	
 
+	private class PasswordDialog extends DialogFragment {
+		
+		private UserProfile user;
+		
+		public PasswordDialog(UserProfile user) {
+			super();
+			this.user = user;
+		}
+		
+		@Override
+	    public Dialog onCreateDialog(Bundle savedInstanceState) {
+	        // Use the Builder class for convenient dialog construction
+			final View passwordView = getActivity().getLayoutInflater().inflate(R.layout.dialogsignin,  null);
+	        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+	        builder.setMessage("Enter Password")
+	               .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+	                   public void onClick(DialogInterface dialog, int id) {
+	                	   EditText passwordET = (EditText) passwordView.findViewById(R.id.password);
+	                	   String password = passwordET.getText().toString() + "";
+	                	   if (password.equals(user.getPassword())) {
+	                		   selectUser(user);
+	                	   }
+	                   }
+	               })
+	               .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+	                   public void onClick(DialogInterface dialog, int id) {
+	                        selectUser(null);
+	                   }
+	               })
+	               .setView(passwordView);
+	        // Create the AlertDialog object and return it
+	        return builder.create();
+	    }
 
+		
+	}
+	
+	
 	@Override
 	public void onClick(View v) {
 		if (v.getId() == R.id.new_user) {
 			final ReaderActivity ra = getReaderActivity();
-			EditText et = (EditText) ra.findViewById(R.id.new_user_name);
+			EditText usernameET = (EditText) ra.findViewById(R.id.new_user_name);
+			EditText passwordET = (EditText) ra.findViewById(R.id.new_password);
 			hideKeyboard(ra);
 			ra.runOnUiThread(new Runnable() {
 				@Override
@@ -94,7 +146,7 @@ public class LoginFragment extends Fragment implements OnItemClickListener, OnCl
 					ra.displayDialog();
 				}
 			});
-			ra.createNewUser(et.getText().toString() + "");
+			ra.createNewUser(usernameET.getText().toString() + "", passwordET.getText().toString() + "");
 			ra.runOnUiThread(new Runnable() {
 				@Override
 				public void run() {

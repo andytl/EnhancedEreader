@@ -78,7 +78,8 @@ void net_train(std::string filename) {
 	data.set_train_data(in_data.size(), eye_size.area() / 4, in_data.data(), 2, out_data.data());
 	net.init_weights(data);
 	net.train_on_data(data, max_iterations, iterations_between_reports, desired_error);
-	data.save_train(filename);
+	net.save(filename);
+//	data.save_train(filename);
 	if (printmethods) LOGD("net train -- exit");
 }
 
@@ -90,9 +91,11 @@ void load_net(std::string filename) {
 	const unsigned int iterations_between_reports = 50; // 1000
 //	const unsigned int iterations_between_reports = 100;
 	FANN::training_data data;
-	data.read_train_from_file(filename);
-	net.init_weights(data);
-	net.train_on_data(data, max_iterations, iterations_between_reports, desired_error);
+//	data.read_train_from_file(filename);
+//	net.init_weights(data);
+//	net.train_on_data(data, max_iterations, iterations_between_reports, desired_error);
+
+	net.create_from_file(filename);
 	if (printmethods) LOGD("load net -- exit");
 }
 
