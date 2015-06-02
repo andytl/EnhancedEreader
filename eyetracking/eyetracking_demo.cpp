@@ -244,7 +244,7 @@ cv::Mat * processFrame(const cv::Mat *frame) {
 	static const bool do_equalize = true;
 	static const bool do_threshold = false;
 	static const bool do_downsample = true;
-	static const bool do_gauss = false;
+	static const bool do_gauss = true;
 	static const bool do_borders = false;
 
 	if (frame->empty())

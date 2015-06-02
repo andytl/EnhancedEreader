@@ -7,3 +7,5 @@ http://stackoverflow.com/questions/5154282/dilate-erode-modify-kernel-option
 
 http://openscholar.cs.umass.edu/mlds/files/mobisys14-ishadow.pdf
 http://cs.txstate.edu/~ok11/papers_published/2010_CHI_Se_Ko.pdf
+
+http://thume.ca/projects/2012/11/04/simple-accurate-eye-center-tracking-in-opencv/
