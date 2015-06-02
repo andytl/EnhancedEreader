@@ -1,6 +1,9 @@
 package com.example.testerapplication;
 
-import java.util.Map;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
@@ -197,12 +200,14 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 			System.out.println(fd);
 			
 			//Send http POST to the website to save rate with current time
+			new WebCommSendData(fd, ra.getUserName(), ra.getPassword()).start();
 			
 			
 			//Reset the monitor
 			mMonitor.reset();
 		}
 	}
+	
 	
 	private void hideKeyboard(Activity activity) {
 		InputMethodManager imm = (InputMethodManager)activity.getSystemService(

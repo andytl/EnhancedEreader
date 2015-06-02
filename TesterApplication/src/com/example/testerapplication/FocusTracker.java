@@ -12,9 +12,7 @@ public class FocusTracker {
 
 	public static final double MAX_AVERAGE_RANGE = 100;
 	
-	public static final String FOCUS_RATE = "FOCUS_RATE";
-	public static final String TOTAL_TIME = "TOTAL_TIME";
-	public static final String TIME_READING = "TIME_READING";
+
 	
 	
 	private double rateOffScreen;
@@ -112,11 +110,6 @@ public class FocusTracker {
 	public FocusData getData() {
 		endTime = System.currentTimeMillis();
 		totalTime = endTime - startTime;
-		Map<String, Object> result = new HashMap<String, Object>();
-		result.put(FOCUS_RATE, getFocusRate());
-		result.put(TOTAL_TIME, totalTime);
-		result.put(TIME_READING, timeReading);
-		
 		return new FocusData(totalTime, timeReading, getFocusRate(), System.currentTimeMillis());
 	}
 	

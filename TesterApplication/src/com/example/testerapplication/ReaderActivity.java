@@ -203,6 +203,7 @@ public class ReaderActivity extends Activity {
 		currentUser = user;
 		boolean result = dbHelper.addUser(currentUser);
 		if (result) {
+			new WebCommNewUser(user).start();
 			getFragmentManager().beginTransaction()
 				.replace(R.id.container,  new CalibrateFragment(), CALIBRATE_MODE)
 				.commit();
@@ -250,26 +251,26 @@ public class ReaderActivity extends Activity {
 		return result;
 	}
 	
-	public boolean createProfile(UserProfile user) {
-		boolean result = false;
-		SQLiteDatabase db = dbHelper.getWritableDatabase();
-		ContentValues values = new ContentValues();
-		values.put(DbHelper.USER_ID, user.getUserName());
-		db.beginTransaction();
-		try {
-			// need to change schema of local database to match new UUID format
-			long newRowId = db.insert(DbHelper.USER_TABLE_NAME, null, values);
-			if (newRowId == -1) {
-				System.err.println("error entering user into database");
-			} else {
-				db.setTransactionSuccessful();
-				result = true;
-			}
-		} finally {
-			db.endTransaction();
-		}
-		return result;
-	}
+//	public boolean createProfile(UserProfile user) {
+//		boolean result = false;
+//		SQLiteDatabase db = dbHelper.getWritableDatabase();
+//		ContentValues values = new ContentValues();
+//		values.put(DbHelper.USER_ID, user.getUserName());
+//		db.beginTransaction();
+//		try {
+//			// need to change schema of local database to match new UUID format
+//			long newRowId = db.insert(DbHelper.USER_TABLE_NAME, null, values);
+//			if (newRowId == -1) {
+//				System.err.println("error entering user into database");
+//			} else {
+//				db.setTransactionSuccessful();
+//				result = true;
+//			}
+//		} finally {
+//			db.endTransaction();
+//		}
+//		return result;
+//	}
 	
 	public boolean removeProfile(UserProfile user) {
 		return false;
@@ -319,6 +320,13 @@ public class ReaderActivity extends Activity {
 		}
 	}
 	
+	public String getPassword() {
+		if (currentUser != null) {
+			return currentUser.getPassword();
+		} else {
+			return null;
+		}
+	}
 	
 	public String createLocalFile(String userName) {
 		return getFilesDir() + "/" + userName + ".fann";
