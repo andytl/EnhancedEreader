@@ -20,8 +20,6 @@ router.get('/users', function(req, res, next) {
   }));
 });
 
-
-
 // TODO: remove this
 router.get('/user/:username', function (req, res, next) {
   var params = req.params;
@@ -45,6 +43,24 @@ router.post('/user', function (req, res, next) {
 });
 
 
+router.get('/entry', function(req, res, next) {
+  database.getAllEntries(
+      dataResponse.bind(null, res, next, function (data) {
+        var result = {};
+        data.forEach(function (d) {
+          if (!result[d.username]) {
+            result[d.username] = [];
+          }
+          result[d.username].push({
+            focusrate: d.focusrate,
+            timestamp: d.timestamp
+          });
+        });
+        return result;
+      })
+  );
+});
+
 router.get('/entry/:username', function(req, res, next) {
   var params = req.params;
   if (checkMissingParams(params, ['username'], next)) {
@@ -52,7 +68,7 @@ router.get('/entry/:username', function(req, res, next) {
   }
   database.getEntries(params.username,
       dataResponse.bind(null, res, next, function (data) {
-        var filteredData = data.map(function(d) {
+        var filteredData = data.map(function (d) {
           delete d.username;
           return d;
         });

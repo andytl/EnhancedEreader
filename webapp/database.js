@@ -35,12 +35,6 @@ function getUsers(callback) {
   db.all('SELECT user.username FROM user', resultCallback.bind(null, callback));
 }
 
-/*
- * Query for user and password
- * callback(err, res)
- * Callback is passed either uid or null
- * err is set if something bad happened
- */
 function authUser(username, password, callback) {
   db.get('SELECT * FROM user WHERE username=? AND password=?',
       [username, password],
@@ -70,6 +64,11 @@ function getEntries(username, callback) {
       resultCallback.bind(null, callback));
 }
 
+function getAllEntries(callback) {
+  db.all('SELECT * FROM entry',
+      resultCallback.bind(null, callback));
+}
+
 function resultCallback(callback, err, rows) {
   if (err) {
     //TODO
@@ -94,6 +93,7 @@ module.exports = {
   makeUser: makeUser,
   addEntry: addEntry,
   getEntries: getEntries,
-  getUsers: getUsers
+  getUsers: getUsers,
+  getAllEntries: getAllEntries
 };
 
