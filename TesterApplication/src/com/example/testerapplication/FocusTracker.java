@@ -16,6 +16,7 @@ public class FocusTracker {
 	
 	
 	private double rateOffScreen;
+	private double dartingRate;
 	private long startTime = -1;
 	private long endTime = -1;
 	private long timeReading;
@@ -46,6 +47,7 @@ public class FocusTracker {
 	
 	// double between -1 and 1 signifies valid read
 	public void newReadPosition(double x, double y) {
+		
 		if (startTime < 0) {
 			startTime = System.currentTimeMillis();
 		} 
@@ -74,6 +76,11 @@ public class FocusTracker {
 		double height = rootView.getHeight();
 		curX = interpolateValue(x, width);
 		curY = interpolateValue(y, height);
+		if (Math.abs(curY - avgY) < height/3) {
+			dartingRate = dartingRate * offScreenUpdate + 1 - offScreenUpdate;
+		} else {
+			dartingRate = dartingRate * offScreenUpdate;
+		}
 		avgX = avgX * avgUpdate + curX * (1-avgUpdate);
 		avgY = avgY * avgUpdate + curY * (1-avgUpdate);
 		if (avgY < height/3.0) {
@@ -92,10 +99,6 @@ public class FocusTracker {
 //			vg.scrollBy(0, velocity);
 //			velocity = 0;
 //		}
-		System.err.println("avgY: " + avgY);
-		System.err.println("velocity: " + velocity);
-		System.err.println("height: " + height);
-		System.err.println("Height/3:" + height/3.0);
 		ViewGroup vg = (ViewGroup) rootView.findViewById(scrollId);
 		vg.scrollBy(0, velocity);		
 		velocity = 0;
@@ -104,13 +107,22 @@ public class FocusTracker {
 	
 	public double getFocusRate() {
 //		return (1-rateOffScreen) * 100;
-		return timeReading*1.0/totalTime;
+		if (totalTime > 0) {
+			return timeReading*1.0/totalTime;
+		} else {	
+			long curTime = System.currentTimeMillis();
+			if (curFocused) {
+				return (timeReading + curTime - tempTime)* 1.0/(curTime - startTime);
+			} else {
+				return timeReading *1.0/(curTime - startTime);
+			}
+		}
 	}
 	
 	public FocusData getData() {
 		endTime = System.currentTimeMillis();
 		totalTime = endTime - startTime;
-		return new FocusData(totalTime, timeReading, getFocusRate(), System.currentTimeMillis());
+		return new FocusData(totalTime, timeReading, getFocusRate(), System.currentTimeMillis(), dartingRate);
 	}
 	
 	public void reset() {
@@ -124,6 +136,7 @@ public class FocusTracker {
 		avgY = 0;
 		velocity = 0;
 		rateOffScreen = 0;
+		dartingRate = 0;
 	}
 	
 	private void clearCircles(ViewGroup circleOverlay) {

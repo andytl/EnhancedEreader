@@ -23,18 +23,20 @@ public class WebCommSendData extends WebCommBase implements Runnable {
 	public void run() {
 		String url = "http://attu4.cs.washington.edu:3777/api/entry";
 		HttpURLConnection conn = connect(url, "POST", getJSON().toString());
-		try {
-			int response = conn.getResponseCode();
-			System.out.println(response);
-			if (response == 200) {
-//				OutputStream request = conn.getOutputStream();
-//				request.write(getJSON().toString().getBytes());
-//				request.flush();
-//				request.close();
+		if (conn != null) {
+			try {
+				int response = conn.getResponseCode();
+				System.out.println(response);
+				if (response == 200) {
+	//				OutputStream request = conn.getOutputStream();
+	//				request.write(getJSON().toString().getBytes());
+	//				request.flush();
+	//				request.close();
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 	

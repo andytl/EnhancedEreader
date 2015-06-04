@@ -197,7 +197,7 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 			}
 		} else if (v.getId() == R.id.save_data){
 			FocusData fd = mMonitor.getData();
-			System.out.println(fd);
+			System.err.println(fd);
 			
 			//Send http POST to the website to save rate with current time
 			new WebCommSendData(fd, ra.getUserName(), ra.getPassword()).start();
