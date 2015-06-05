@@ -1,7 +1,7 @@
 (function () {
 
 window.onload = function() {
-  //loadUsers();
+  loadUsers();
   loadAll();
 };
 

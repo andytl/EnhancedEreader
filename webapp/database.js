@@ -9,6 +9,7 @@ var fs = require("fs");
 
 // Dependancies
 var sqlite3 = require('sqlite3').verbose();
+var squel = require('squel');
 
 var file = 'data/database.sqlite';
 var exists = fs.existsSync(file);
@@ -26,6 +27,9 @@ if (!exists) {
         'username REFERENCES user(username), ' +
         'focusrate DOUBLE, ' +
         'timestamp INTEGER, ' +
+        'totaltime INTEGER, ' +
+        'timereading INTEGER, ' +
+        'dartingrate DOUBLE, ' +
         'PRIMARY KEY (username, timestamp) ' +
         ')');
   });
@@ -52,9 +56,12 @@ function makeUser(username, password, callback) {
       confirmCallback.bind(null, callback));
 }
 
-function addEntry(username, focusrate, timestamp, callback) {
-  db.run('INSERT INTO entry (username, focusrate, timestamp) VALUES (?, ?, ?)',
-      [username, focusrate, timestamp],
+function addEntry(username, focusrate, timestamp, totaltime, timereading,
+    dartingrate, callback) {
+  db.run('INSERT INTO entry ' +
+      '(username, focusrate, timestamp, totaltime, timereading, dartingrate)' +
+      'VALUES (?, ?, ?, ?, ?, ?)',
+      [username, focusrate, timestamp, totaltime, timereading, dartingrate],
       confirmCallback.bind(null, callback));
 }
 
@@ -67,6 +74,15 @@ function getEntries(username, callback) {
 function getAllEntries(callback) {
   db.all('SELECT * FROM entry',
       resultCallback.bind(null, callback));
+}
+
+function addEntries(entries, callback) {
+  var query = squel
+    .insert()
+    .into('entry')
+    .setFieldsRows(entries)
+    .toString();
+  db.run(query, resultCallback.bind(null, callback));
 }
 
 function resultCallback(callback, err, rows) {
@@ -94,6 +110,7 @@ module.exports = {
   addEntry: addEntry,
   getEntries: getEntries,
   getUsers: getUsers,
-  getAllEntries: getAllEntries
+  getAllEntries: getAllEntries,
+  addEntries: addEntries
 };
 
