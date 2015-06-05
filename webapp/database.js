@@ -2,6 +2,7 @@
 "use strict";
 
 /*
+ * Database interactions
  */
 
 // Core
@@ -13,10 +14,7 @@ var squel = require('squel');
 
 var file = 'data/database.sqlite';
 var exists = fs.existsSync(file);
-
-// Load the database
-var db = new sqlite3.Database(file);
-
+var db = new sqlite3.Database(file); // Load the database
 if (!exists) {
   db.serialize(function () {
     db.run('CREATE TABLE user ( ' + 

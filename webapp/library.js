@@ -31,7 +31,6 @@ function logBody(req, res, next) {
   next();
 }
 
-
 module.exports = {
   checkMissingParams: checkMissingParams,
   logBody: logBody

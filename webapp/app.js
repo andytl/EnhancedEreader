@@ -2,7 +2,7 @@
 "use strict";
 
 /*
- *
+ * Eyetracker Webapp
  */
 
 var util = require('util');
@@ -70,7 +70,6 @@ function logerror(why) {
   console.log('Status  ' + why.status);
   console.log('Message ' + why.message);
 }
-
 
 module.exports = app;
 

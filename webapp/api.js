@@ -47,7 +47,6 @@ router.post('/user', function (req, res, next) {
       confirmResponse.bind(null, res, next));
 });
 
-
 router.get('/entry', function(req, res, next) {
   database.getAllEntries(
       dataResponse.bind(null, res, next, function (data) {
@@ -100,7 +99,6 @@ router.post('/entry', function(req, res, next) {
       confirmResponse.bind(null, res, next));
 });
 
-
 function confirmResponse(res, next, err) {
   if (err) {
     var ex = new Error('Internal Database Error');
@@ -125,3 +123,4 @@ function dataResponse(res, next, datafctn, err, data) {
 }
 
 module.exports = router;
+

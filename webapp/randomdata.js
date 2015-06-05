@@ -82,5 +82,5 @@ function buildResponse(newThing) {
   };
 }
 
-
 module.exports = router;
+
