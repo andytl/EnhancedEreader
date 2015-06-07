@@ -149,39 +149,72 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 	
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-		mGray = inputFrame.gray();
-		Mat square = new Mat(mGray, getCropArea(mGray));
-		square = square.clone();
-		Mat tempT = square.t();
-		Mat squareT = square.t();
-		Core.flip(tempT,  squareT, -1);
-		
-		square.release();
-		tempT.release();
-		Imgproc.resize(squareT, mGray, mGray.size());
-		if (cState !=  null) {
-			if (!cState.initialized()) {
-				View rootView = getView();
-				cState.setDimensions(rootView.getWidth(), rootView.getHeight());
+		if (ReaderActivity.FLIP) {
+			mGray = inputFrame.gray();
+			Mat square = new Mat(mGray, getCropArea(mGray));
+			square = square.clone();
+			Mat tempT = square.t();
+			Mat squareT = square.t();
+			Core.flip(tempT,  squareT, -1);
+			
+			square.release();
+			tempT.release();
+			Imgproc.resize(squareT, mGray, mGray.size());
+			if (cState !=  null) {
+				if (!cState.initialized()) {
+					View rootView = getView();
+					cState.setDimensions(rootView.getWidth(), rootView.getHeight());
+				}
+				if (validFrame) {
+					validFrame = false;
+					DoublePoint dp = cState.getCurrentCoordinate();
+					View rootView = getView();
+					tasks.addTask(new MatPoint(squareT, interpolateX(dp.x, rootView), interpolateY(dp.y, rootView), cState.getPositionID()));
+				} else {
+					squareT.release();
+				}
 			}
-			if (validFrame) {
-				validFrame = false;
-				DoublePoint dp = cState.getCurrentCoordinate();
-				View rootView = getView();
-				tasks.addTask(new MatPoint(squareT, interpolateX(dp.x, rootView), interpolateY(dp.y, rootView), cState.getPositionID()));
+			if (visible) {
+				return mGray;
 			} else {
-				squareT.release();
+				if (mBlack == null) {
+					mBlack = Mat.zeros(mGray.size(), 0);
+				}
+				mGray.release();
+				return mBlack;
+			}	
+		} else {
+			mGray = inputFrame.gray();
+			Mat square = new Mat(mGray, getCropArea(mGray));
+			square = square.clone();
+			Core.flip(square, square, 0);
+			Core.flip(square.t(), square, 0);
+//			Core.flip(square,  square, -1);			
+			Imgproc.resize(square, mGray, mGray.size());
+			if (cState !=  null) {
+				if (!cState.initialized()) {
+					View rootView = getView();
+					cState.setDimensions(rootView.getWidth(), rootView.getHeight());
+				}
+				if (validFrame) {
+					validFrame = false;
+					DoublePoint dp = cState.getCurrentCoordinate();
+					View rootView = getView();
+					tasks.addTask(new MatPoint(square, interpolateX(dp.x, rootView), interpolateY(dp.y, rootView), cState.getPositionID()));
+				} else {
+					square.release();
+				}
+			}
+			if (visible) {
+				return mGray;
+			} else {
+				if (mBlack == null) {
+					mBlack = Mat.zeros(mGray.size(), 0);
+				}
+				mGray.release();
+				return mBlack;
 			}
 		}
-		if (visible) {
-			return mGray;
-		} else {
-			if (mBlack == null) {
-				mBlack = Mat.zeros(mGray.size(), 0);
-			}
-			mGray.release();
-			return mBlack;
-		}		
 	}
 	
 	private Rect getCropArea(Mat m) {

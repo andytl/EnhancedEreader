@@ -32,7 +32,8 @@ import com.example.testerapplication.webcommunication.WebCommNewUser;
 public class ReaderActivity extends Activity {
 
 	public static final boolean VERBOSE = false; 
-	public static final boolean OFFLOAD = false;
+	public static final boolean OFFLOAD = true;
+	public static final boolean FLIP = true;
 
 	public static final String WEB_MODE = "WEB_MODE";
 	public static final String LOGIN_MODE = "LOGIN_MODE";
@@ -195,6 +196,7 @@ public class ReaderActivity extends Activity {
 		currentUser = user;
 		if (user != null) {
 			NativeInterface.loadUserProfile(createLocalFile(user.getUserName()));
+			cancelDialog();
 			getFragmentManager().beginTransaction()
 				.replace(R.id.container, new WebFragment(), WEB_MODE)
 				.commit();
@@ -349,7 +351,9 @@ public class ReaderActivity extends Activity {
 	}
 	
 	public void cancelDialog() {
-		dialog.cancel();
+		if (dialog.isShowing()) {
+			dialog.cancel();
+		}
 	}
 	
 	public void displayDialog() {

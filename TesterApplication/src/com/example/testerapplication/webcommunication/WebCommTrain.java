@@ -32,17 +32,25 @@ public class WebCommTrain extends WebCommBase implements Runnable {
 		byte[] data = getSerializedData();
 		if (data != null) {
 			String url = "http://attu4.cs.washington.edu:3777/fann/train";
-			HttpURLConnection conn = connect(url, "POST", getJSON(data).toString());
+			HttpURLConnection conn = connect(url, "POST", data);
 			if (conn == null) {
 				return;
 			}
+			int response = -1;
 			try {
-				int response = conn.getResponseCode();
-				if (response == 200) {
-					InputStream in = conn.getInputStream();
-					String jsonString = getResponseBody(in, conn.getContentLength());
-					JSONObject jobj = new JSONObject(jsonString);
-					String netData = jobj.getString("nn_serialized");
+				response = conn.getResponseCode();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			if (response == 200) {
+				InputStream in = null;
+				try {
+					in = conn.getInputStream();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				if (in != null) {
+					String netData = getResponseBody(in, conn.getContentLength());
 					saveSerializedData(netData);
 					ra.runOnUiThread(new Runnable() {
 						@Override
@@ -51,10 +59,8 @@ public class WebCommTrain extends WebCommBase implements Runnable {
 						}
 					});
 				}
-			} catch (IOException | JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
+		
 			
 		}
 	}
@@ -62,17 +68,16 @@ public class WebCommTrain extends WebCommBase implements Runnable {
 	private String getResponseBody(InputStream in, long length) {
 		String result = "";
 		byte[] data = new byte[2048]; 
-		try {
-			int bytesRead = 0;
-			while (bytesRead < length) {
-				int bytes = in.read(data);
-				bytesRead += bytes;
-				result += new String(data, 0, bytes);
+		int bytesRead = 0;
+		while (bytesRead < length) {
+			try {
+					int bytes = in.read(data);
+					bytesRead += bytes;
+					result += new String(data, 0, bytes);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			return result;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 		return result;
 	}
