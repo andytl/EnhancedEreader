@@ -3,11 +3,11 @@ package com.example.testerapplication;
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.RelativeLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import com.example.testerapplication.datastructures.DoublePoint;
 import com.example.testerapplication.display.CircleView;
 
 public class ReadingMonitor {

@@ -1,5 +1,7 @@
 package com.example.testerapplication;
 
+import com.example.testerapplication.datastructures.DoublePoint;
+
 public class CalibrationState {
 	private int curRow;
 	private int curCol;

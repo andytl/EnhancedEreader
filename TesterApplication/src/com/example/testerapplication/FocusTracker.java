@@ -1,11 +1,9 @@
 package com.example.testerapplication;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.testerapplication.datastructures.FocusData;
 import com.example.testerapplication.display.CircleView;
 
 public class FocusTracker {
@@ -91,18 +89,28 @@ public class FocusTracker {
 		}
 		ViewGroup circleOverlay = (ViewGroup)rootView.findViewById(R.id.web_circle_overlay);
 		clearCircles(circleOverlay);
-		drawCircle((float)avgX, (float)avgY, 30, 0xFF00FFFF, circleOverlay);
-		drawCircle((float)curX, (float)curY, 25, 0xFFFFFF00, circleOverlay);
+//		drawCircle((float)avgX, (float)avgY, 30, 0xFF00FFFF, circleOverlay);
+	
+		float Y = getRow(avgY, height);
+		drawCircle((float)width/2, (float)Y, 30, 0xFFFFFF00, circleOverlay);
+
+		
+		drawCircle((float)curX, (float)curY, 2, 0xFFFFFF00, circleOverlay);
 		ra.updateFocusRate(getFocusRate());
-//		if (velocity > 5 || velocity < 5) {
-//			ViewGroup vg = (ViewGroup) rootView.findViewById(scrollId);
-//			vg.scrollBy(0, velocity);
-//			velocity = 0;
-//		}
 		ViewGroup vg = (ViewGroup) rootView.findViewById(scrollId);
 		vg.scrollBy(0, velocity);		
 		velocity = 0;
 		
+	}
+	
+	private float getRow(double avgY, double height) {
+		if (avgY < height/3) {
+			return (float)height/4;
+		} else if (avgY < 2*height/3) {
+			return (float)height/2;
+		} else {
+			return (float) height/4*3;
+		}
 	}
 	
 	public double getFocusRate() {

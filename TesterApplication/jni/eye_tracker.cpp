@@ -65,6 +65,15 @@ void update_net(cv::Mat * eye_data, double x, double y) {
 	out_data.push_back(out);
 }
 
+void save_train(std::string filename) {
+	if (printmethods) LOGD("net_train -- enter");
+	LOGD("save train");
+	FANN::training_data data;
+	data.set_train_data(in_data.size(), eye_size.area() / 4, in_data.data(), 2, out_data.data());
+	data.save_train(filename);
+	if (printmethods) LOGD("net train -- exit");
+}
+
 void net_train(std::string filename) {
 	if (printmethods) LOGD("net_train -- enter");
 	LOGD("net train");

@@ -75,6 +75,14 @@ extern "C" {
 		return 1;
 	}
 
+	JNIEXPORT void JNICALL Java_com_example_testerapplication_NativeInterface_nativeSaveTrainData
+		(JNIEnv *env, jobject obj, jstring saveLocation)
+	{
+		std::string str;
+		GetJStringContent(env, saveLocation, str);
+		save_train(str);
+	}
+
 	JNIEXPORT void JNICALL Java_com_example_testerapplication_NativeInterface_nativeLoadNeuralNet
 		(JNIEnv *env, jobject obj, jstring filename)
 	{

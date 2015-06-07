@@ -14,7 +14,6 @@ import org.opencv.android.OpenCVLoader;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -26,10 +25,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
+import com.example.testerapplication.datastructures.UserProfile;
+import com.example.testerapplication.webcommunication.WebCommNewUser;
+
 
 public class ReaderActivity extends Activity {
 
 	public static final boolean VERBOSE = false; 
+	public static final boolean OFFLOAD = false;
 
 	public static final String WEB_MODE = "WEB_MODE";
 	public static final String LOGIN_MODE = "LOGIN_MODE";
@@ -203,10 +206,10 @@ public class ReaderActivity extends Activity {
 		currentUser = user;
 		boolean result = dbHelper.addUser(currentUser);
 		if (result) {
-			new WebCommNewUser(user).start();
-			getFragmentManager().beginTransaction()
-				.replace(R.id.container,  new CalibrateFragment(), CALIBRATE_MODE)
-				.commit();
+			new WebCommNewUser(user, this).start();
+//			getFragmentManager().beginTransaction()
+//				.replace(R.id.container,  new CalibrateFragment(), CALIBRATE_MODE)
+//				.commit();
 		}
 	}
 	
@@ -326,6 +329,10 @@ public class ReaderActivity extends Activity {
 		} else {
 			return null;
 		}
+	}
+	
+	public UserProfile getUserProfile() {
+		return currentUser;
 	}
 	
 	public String createLocalFile(String userName) {

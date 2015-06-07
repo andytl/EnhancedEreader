@@ -1,5 +1,7 @@
 package com.example.testerapplication;
 
+import com.example.testerapplication.datastructures.UserProfile;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

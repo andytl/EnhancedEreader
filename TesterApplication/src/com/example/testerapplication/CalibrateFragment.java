@@ -23,6 +23,9 @@ import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
+import com.example.testerapplication.datastructures.CVTaskBuffer;
+import com.example.testerapplication.datastructures.DoublePoint;
+import com.example.testerapplication.datastructures.MatPoint;
 import com.example.testerapplication.display.CircleView;
 
 public class CalibrateFragment extends Fragment implements CvCameraViewListener2, OnTouchListener{
@@ -73,14 +76,7 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 		}
 		cState = new CalibrationState();
 		updateCircle(cState.getCurrentCoordinate());
-//		//TODO: figure out if we need to terminate this thread
-//		cState = new CalibrationState();
-//		trainerThread = new EyeTrainerThread(tasks, cState, this, ra);
-//		trainerThread.start();
-//		updateCircle(cState.getCurrentCoordinate());
-//		validFrame = true;
 		new StartCalibrationDialogFragment().show(getFragmentManager(), "start_callibartion");
-//		startCalibration();
 	}
 	
 	private void startCalibration() {
@@ -127,7 +123,7 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 		if (rootView != null) {
 			RelativeLayout rl = (RelativeLayout) rootView.findViewById(R.id.calibrate_circle_overlay);
 			if (rl != null) {
-				CircleView cv = new CircleView(context, (int)x, (int)y, 100, 0xFFFF0000);
+				CircleView cv = new CircleView(context, (int)x, (int)y, 100, 0xFF008AE6);
 				rl.removeAllViews();
 				rl.addView(cv);
 			}
@@ -149,18 +145,7 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 		double top = v.getTop();
 		return (y/(bottom-top)) * 2 -1;
 	}
-//
-//	@Override
-//	public boolean onTouch(View v, MotionEvent event) {
-////		if (event.getAction() != MotionEvent.ACTION_MOVE) {
-//			drawCircle(ra, v, event.getX(), event.getY());
-////			curX = interpolateX(event.getX(), v);
-////			curY = interpolateY(event.getY(), v);
-//			validFrame = true;
-//			return true;
-////		}
-////		return false;
-//	}	
+
 	
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {

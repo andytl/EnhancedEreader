@@ -1,4 +1,4 @@
-package com.example.testerapplication;
+package com.example.testerapplication.datastructures;
 
 import org.opencv.core.Mat;
 

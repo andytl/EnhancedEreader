@@ -1,8 +1,8 @@
 package com.example.testerapplication;
 
-import java.io.File;
-
 import org.opencv.core.Mat;
+
+import com.example.testerapplication.datastructures.DoublePoint;
 
 public class NativeInterface {
 
@@ -38,11 +38,16 @@ public class NativeInterface {
 		nativeLoadNeuralNet(filename);
 	}
 	
+	public static void saveTrainData(String filename) {
+		nativeSaveTrainData(filename);
+	}
+	
 	public static int initializeTracker(String face, String eyes) {
 		return nativeInitializeTracker(face, eyes);
 	}
 	
 	
+	private static native void nativeSaveTrainData(String filename);
 	private static native void nativeLoadNeuralNet(String filename);
 	private static native int nativeInitializeTracker(String face, String eyes);
 	public static native int nativeOnNewFrame(long mat, DoublePoint dp);

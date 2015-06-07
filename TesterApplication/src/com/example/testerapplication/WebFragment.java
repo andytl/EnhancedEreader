@@ -1,10 +1,5 @@
 package com.example.testerapplication;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
@@ -28,6 +23,11 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
+
+import com.example.testerapplication.datastructures.CVTaskBuffer;
+import com.example.testerapplication.datastructures.FocusData;
+import com.example.testerapplication.datastructures.MatTime;
+import com.example.testerapplication.webcommunication.WebCommSendData;
 
 public class WebFragment extends Fragment implements OnTouchListener, OnClickListener, CvCameraViewListener2, NewReadCallback{
 
@@ -90,8 +90,8 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 		registerOnClick(R.id.save_data, rootView);
 		WebView wv = (WebView) rootView.findViewById(R.id.web_view);
 		wv.setWebViewClient(new WebViewClient());
-//		wv.loadUrl("https://www.gutenberg.org/files/31547/31547-h/31547-h.htm");
-		wv.loadUrl("http://www.madrona.com");
+		wv.loadUrl("https://www.gutenberg.org/files/31547/31547-h/31547-h.htm");
+//		wv.loadUrl("http://www.madrona.com");
 		enableCameraView();
 		trackerThread = new EyeTrackerThread(ra, this, tasks);
 		trackerThread.start();

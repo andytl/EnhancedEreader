@@ -2,6 +2,10 @@ package com.example.testerapplication;
 
 import org.opencv.core.Mat;
 
+import com.example.testerapplication.datastructures.CVTaskBuffer;
+import com.example.testerapplication.datastructures.DoublePoint;
+import com.example.testerapplication.datastructures.MatTime;
+
 public class EyeTrackerThread extends Thread implements Runnable {
 
 	private ReaderActivity ra;

@@ -5,6 +5,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import com.example.testerapplication.datastructures.UserProfile;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
