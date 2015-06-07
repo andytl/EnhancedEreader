@@ -35,7 +35,8 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 	private FocusTracker mMonitor;
 	private Mat                     mRgba;
 	private Mat                     mGray;
-//	private Mat 					mSquareT;
+	private Mat mBlack = null;
+	
     public CameraBridgeViewBase   mOpenCvCameraView = null;
     
     public static int FRAME_RATE = 0;
@@ -54,7 +55,7 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
     	validFrame = false;
     	frameCount = 0;
     }
-	
+	 
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
@@ -75,6 +76,7 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 		mOpenCvCameraView.setCameraIndex(1);
 		return rootView;
 	}
+	
 	
 	private void registerOnClick(int id, View rootView) {
 		Button button = (Button) rootView.findViewById(id);
@@ -157,7 +159,15 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 		if (FRAME_RATE != 0) {
 			frameCount %= FRAME_RATE;
 		}
-		return mGray;		
+		if (ra.show()) {
+			return mGray;
+		} else {
+			if (mBlack == null) {
+				mBlack = Mat.zeros(mGray.size(), 0);
+			}
+			mGray.release();
+			return mBlack;
+		}
 	}
 	
 	private Rect getCropArea(Mat m) {
@@ -208,6 +218,14 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 		}
 	}
 	
+	public void showCameraView(boolean show) {
+		View webView = getView().findViewById(R.id.web_view);
+		if (show) {
+			webView.setAlpha((float)0.7);
+		} else {
+			webView.setAlpha(1);
+		}
+	}
 	
 	private void hideKeyboard(Activity activity) {
 		InputMethodManager imm = (InputMethodManager)activity.getSystemService(

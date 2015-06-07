@@ -21,6 +21,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
@@ -38,6 +39,8 @@ public class ReaderActivity extends Activity {
 	public static final String WEB_MODE = "WEB_MODE";
 	public static final String LOGIN_MODE = "LOGIN_MODE";
 	public static final String CALIBRATE_MODE = "CALIBRATE_MODE";
+	
+	private boolean show = true;
 	
 	
 	private DbHelper dbHelper;
@@ -376,11 +379,31 @@ public class ReaderActivity extends Activity {
 		}
 	}	
 	
+	 @Override
+	 public boolean onKeyDown(int keyCode, KeyEvent event) {
+		 WebFragment wf = ((WebFragment)getFragmentManager().findFragmentByTag(WEB_MODE));
+		 if (wf.isVisible()) {
+		 	 if ((keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)){
+		 		 show = false;
+		 		 wf.showCameraView(false);
+		     } else if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+		    	 show = true;
+		    	 wf.showCameraView(true);
+		     }
+		     return true;
+		 }
+		 return false;
+	 }
+	
 	public void updateFocusRate(double focusRate) {
 		TextView tv = (TextView) findViewById(R.id.display_focus_rate);
 		if (tv != null) {
 			tv.setText("Focus Rate: " + focusRate);
 		}
+	}
+	
+	public boolean show() {
+		return show;
 	}
 	
 }

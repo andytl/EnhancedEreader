@@ -89,14 +89,17 @@ public class FocusTracker {
 		}
 		ViewGroup circleOverlay = (ViewGroup)rootView.findViewById(R.id.web_circle_overlay);
 		clearCircles(circleOverlay);
-//		drawCircle((float)avgX, (float)avgY, 30, 0xFF00FFFF, circleOverlay);
-	
-		float Y = getRow(avgY, height);
-		drawCircle((float)width/2, (float)Y, 30, 0xFFFFFF00, circleOverlay);
-
+		if (ra.show()) {
+			
+	//		drawCircle((float)avgX, (float)avgY, 30, 0xFF00FFFF, circleOverlay);
 		
-		drawCircle((float)curX, (float)curY, 2, 0xFFFFFF00, circleOverlay);
-		ra.updateFocusRate(getFocusRate());
+			float Y = getRow(avgY, height);
+			drawCircle((float)width/2, (float)Y, 30, 0xFF11FFFF, circleOverlay);
+	
+			
+			drawCircle((float)curX, (float)curY, 5, 0xFFFFFF00, circleOverlay);
+			ra.updateFocusRate(getFocusRate());
+		}
 		ViewGroup vg = (ViewGroup) rootView.findViewById(scrollId);
 		vg.scrollBy(0, velocity);		
 		velocity = 0;
