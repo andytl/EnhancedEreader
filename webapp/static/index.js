@@ -45,8 +45,8 @@ plotData: function plotData(data, domstring, xAxisLabel, yAxisLabel, xTickFormat
 chartData: function (data, domstring, yLabel, yTickFormatFcn) {
   nv.addGraph(function() {
     var chart = nv.models.discreteBarChart()
-        .x(function(d) { return d.label })    //Specify the data accessors.
-        .y(function(d) { return d.value })
+        .x(function(d) { return d.label; })    //Specify the data accessors.
+        .y(function(d) { return d.value; })
         .staggerLabels(true)    //Too many bars and not enough room? Try staggering labels.
         .tooltips(false)        //Don't show tooltips
         .showValues(true)       //...instead, show the bar value right on top of each bar.
@@ -83,27 +83,21 @@ window.onload = function() {
     loadAllFr();
   }
 };
-/*
+
 function loadAllFr() {
   $.get('api/entry')
     .done(function(data) {
-      var values = [];
+      var series = [];
       Object.keys(data).forEach(function (user) {
-        values.push({
-          label: user,
-          value: data[user] / 3600000
-        });
+        series.push(Shared.getSeries(user, data[user].map(getPair)));
       });
-      Shared.chartData([Shared.getSeries('Cumulative Time Reading', values)],
-          '#visualization_all svg', 'Time (Hr)',
-          Shared.floatFormatter
-      );
+      Shared.plotData(series, '#visualization_all_fr svg',
+         'Date', 'Focusrate', Shared.timeFormatter, Shared.floatFormatter);
     })
     .fail(function(err) {
       console.log(err);
     });
 }
-*/
 
 function loadAll() {
   $.get('api/entries/cumulative')
