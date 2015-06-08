@@ -20,13 +20,26 @@ var fann = require('./fann.js');
 var express = require('express');
 var app = express();
 
+
 app.use(logger); // Echo requests for debug
 
+// Views
+app.set('view engine', 'jade');
+app.set('views', './views');
+// APIs
 app.use('/api', api);
 app.use('/random', random);
 app.use('/fann', fann);
 
-app.use(express.static('static'));
+// Static Paths
+app.use('/static', express.static('static'));
+app.use('/:page', function (req, res, next) {
+    res.render(req.params.page);
+});
+app.use('/', function (req, res, next) {
+    res.render('index');
+});
+
 
 // Error Handlers
 app.use(function(req, res, next) {
@@ -57,18 +70,18 @@ app.use(function(err, req, res, next) {
 });
 
 function logger(req, res, next) {
-  console.log(chalk.green('======>') + ' Got request');
-  console.log('Time   ' + new Date());
-  console.log('From   ' + util.inspect(req.ip));
-  console.log('For    ' + util.inspect(req.path));
-  console.log('Params ' + util.inspect(req.params));
+  console.log(chalk.green.bold('Recieved request'));
+  console.log(chalk.blue('Time   ') + new Date());
+  console.log(chalk.blue('From   ') + util.inspect(req.ip));
+  console.log(chalk.blue('For    ') + req.path);
+  console.log(chalk.blue('Params ') + util.inspect(req.params));
   next();
 }
 
 function logerror(why) {
-  console.log(chalk.red('======>') + ' Error');
-  console.log('Status  ' + why.status);
-  console.log('Message ' + why.message);
+  console.log(chalk.red.bold('Request Error'));
+  console.log(chalk.blue('Status  ') + why.status);
+  console.log(chalk.blue('Message ') + why.message);
 }
 
 module.exports = app;

@@ -41,7 +41,7 @@ router.post('/entry', function (req, res, next) {
   var created = [];
   for (var i = 0; i < params.n; i++) {
     created.push({
-      timestamp: i * params.i + params.s,
+      timestamp: i * params.i + parseInt(params.s, 10) + 1433709320362,
       focusrate: chance.floating({min: 0, max: 1, floating: 3}),
       totaltime: chance.integer({min: 10, max: 100}),
       timereading: chance.integer({min: 1, max: 20}),

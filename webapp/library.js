@@ -2,6 +2,7 @@
 "use strict";
 
 var util = require('util');
+var chalk = require('chalk');
 
 /*
  * Shared code between modules
@@ -27,7 +28,7 @@ function checkMissingParams(params, required, next) {
 }
 
 function logBody(req, res, next) {
-  console.log('Body ' + util.inspect(req.body));
+  console.log(chalk.blue('Body   ') + util.inspect(req.body));
   next();
 }
 

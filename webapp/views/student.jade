@@ -1,0 +1,32 @@
+doctype html
+html
+  head
+    title Student Statistics
+    include ./includes/links.jade
+    script(src='static/student.js')
+  body
+    include ./includes/navbar.jade
+    div.container
+      div.page-header
+        h1 Welcome to Eyetrackerapp
+      div.row
+        div.col-md-6
+          form
+            div.form-group
+              label(for='student-username') Student Username
+              input.form-control#student-username(type='text', placeholder='Enter Username')
+      div.row
+        div.col-md-12
+          div.panel.panel-default
+            div.panel-heading
+              h3.panel-title Focusrate / Time
+            div.panel-body
+              div.chart#chart-focusrate
+                svg
+        div.col-md-12
+          div.panel.panel-default
+            div.panel-heading
+              h3.panel-title dartingrate
+            div.panel-body
+              div.chart#chart-dartrate
+                svg

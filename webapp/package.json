@@ -8,6 +8,7 @@
     "chance": "^0.7.5",
     "concat-stream": "^1.4.8",
     "express": "^4.12.4",
+    "jade": "^1.10.0",
     "sqlite3": "^3.0.8",
     "squel": "^4.0.0"
   },

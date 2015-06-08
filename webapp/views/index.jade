@@ -1,0 +1,19 @@
+doctype html
+html
+  head
+    title Eyetracker Webapp
+    include ./includes/links.jade
+  body
+    include ./includes/navbar.jade
+    div.container
+      div.jumbotron
+        h1 Welcome to Eyetrackerapp
+        p Access student stats and overall statistics
+      div.row
+        div.col-md-12
+          div.panel.panel-default
+            div.panel-heading
+              h3.panel-title All Users focus/time
+            div.panel-body
+              div.chart#visualization_all
+                svg
