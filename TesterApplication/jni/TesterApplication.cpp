@@ -12,7 +12,7 @@ using namespace std;
 // Prevent c++ name mangling
 extern "C" {
 
-	JNIEXPORT jint JNICALL Java_com_example_testerapplication_NativeInterface_nativeInitializeTracker
+	JNIEXPORT jint JNICALL Java_com_example_enhancedereader_NativeInterface_nativeInitializeTracker
 		(JNIEnv *env, jobject obj, jstring face, jstring eye)
 	{
 		const char* faceptr = env->GetStringUTFChars(face, NULL);
@@ -22,7 +22,7 @@ extern "C" {
 	}
 
 
-	JNIEXPORT jint JNICALL Java_com_example_testerapplication_NativeInterface_nativeOnNewFrame
+	JNIEXPORT jint JNICALL Java_com_example_enhancedereader_NativeInterface_nativeOnNewFrame
 		(JNIEnv *env, jobject obj, jlong mat, jobject dp)
 	{
 		//TODO: translation from java to c, then call sunjay's code
@@ -57,7 +57,7 @@ extern "C" {
 		  AEnv->ReleaseStringUTFChars(AStr,s);
 	}
 
-	JNIEXPORT jint JNICALL Java_com_example_testerapplication_NativeInterface_nativeTrainOnFrame
+	JNIEXPORT jint JNICALL Java_com_example_enhancedereader_NativeInterface_nativeTrainOnFrame
 		(JNIEnv *env, jobject obj, jlong mat, jdouble x, jdouble y)
 	{
 		cv::Mat *cMat = (cv::Mat *)mat;
@@ -66,7 +66,7 @@ extern "C" {
 		return resultCode;
 	}
 
-	JNIEXPORT jint JNICALL Java_com_example_testerapplication_NativeInterface_nativeTrainNeuralNet
+	JNIEXPORT jint JNICALL Java_com_example_enhancedereader_NativeInterface_nativeTrainNeuralNet
 		(JNIEnv *env, jobject obj, jstring saveLocation)
 	{
 		std::string str;
@@ -75,7 +75,7 @@ extern "C" {
 		return 1;
 	}
 
-	JNIEXPORT void JNICALL Java_com_example_testerapplication_NativeInterface_nativeSaveTrainData
+	JNIEXPORT void JNICALL Java_com_example_enhancedereader_NativeInterface_nativeSaveTrainData
 		(JNIEnv *env, jobject obj, jstring saveLocation)
 	{
 		std::string str;
@@ -83,7 +83,7 @@ extern "C" {
 		save_train(str);
 	}
 
-	JNIEXPORT void JNICALL Java_com_example_testerapplication_NativeInterface_nativeLoadNeuralNet
+	JNIEXPORT void JNICALL Java_com_example_enhancedereader_NativeInterface_nativeLoadNeuralNet
 		(JNIEnv *env, jobject obj, jstring filename)
 	{
 		std::string str;

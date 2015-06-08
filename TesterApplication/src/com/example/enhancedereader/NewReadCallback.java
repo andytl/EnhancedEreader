@@ -1,4 +1,4 @@
-package com.example.testerapplication;
+package com.example.enhancedereader;
 
 public interface NewReadCallback {
 

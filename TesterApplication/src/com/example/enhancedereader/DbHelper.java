@@ -1,11 +1,11 @@
-package com.example.testerapplication;
-
-import com.example.testerapplication.datastructures.UserProfile;
+package com.example.enhancedereader;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import com.example.enhancedereader.datastructures.UserProfile;
 
 public class DbHelper extends SQLiteOpenHelper{
 	public static final int DATABASE_VERSION = 1;
@@ -14,6 +14,12 @@ public class DbHelper extends SQLiteOpenHelper{
     public static final String USER_ID = "uid";
     public static final String PASSWORD = "password";
     public static final String SQL_CREATE_USERS_TABLE = createUsersTable();
+    
+    private SQLiteDatabase db;
+    
+    public void open() {
+    	db = getWritableDatabase();
+    }
 
     private static String createUsersTable() {
     	String result = "CREATE TABLE " + USER_TABLE_NAME + " (";
@@ -38,7 +44,6 @@ public class DbHelper extends SQLiteOpenHelper{
     
 	public boolean addUser(UserProfile user) {
 		boolean result = true;
-		SQLiteDatabase db = this.getWritableDatabase();
 		ContentValues values = new ContentValues();
 		values.put(USER_ID, user.getUserName());
 		values.put(PASSWORD, user.getPassword());
@@ -56,5 +61,16 @@ public class DbHelper extends SQLiteOpenHelper{
 		}
 		return result;
 	}
+	
+	public void deleteUser(UserProfile user) {
+		db.beginTransaction();
+    	try {
+    		int count = db.delete(DbHelper.USER_TABLE_NAME, DbHelper.USER_ID + " = ?", new String[]{user.getUserName()});
+    		db.setTransactionSuccessful();
+    	} finally {
+    		db.endTransaction();
+    	}
+    }
+	
 	
 }

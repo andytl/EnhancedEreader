@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">TesterApplication</string>
-    <string name="welcome">Welcome to the Tester Application!</string>
+    <string name="app_name">Enhanced E-Reader</string>
+    <string name="welcome">Welcome to the Enhanced Ereader Application</string>
     <string name="action_settings">Settings</string>
     <string name="new_user_et_hint">Enter User Name</string>
     <string name="new_user_button_hint">Create New User</string>

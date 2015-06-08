@@ -1,4 +1,4 @@
-package com.example.testerapplication;
+package com.example.enhancedereader;
 
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
@@ -24,10 +24,11 @@ import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.example.testerapplication.datastructures.CVTaskBuffer;
-import com.example.testerapplication.datastructures.FocusData;
-import com.example.testerapplication.datastructures.MatTime;
-import com.example.testerapplication.webcommunication.WebCommSendData;
+import com.example.enhancedereader.datastructures.CVTaskBuffer;
+import com.example.enhancedereader.datastructures.FocusData;
+import com.example.enhancedereader.datastructures.MatTime;
+import com.example.enhancedereader.webcommunication.WebCommSendData;
+import com.example.testerapplication.R;
 
 public class WebFragment extends Fragment implements OnTouchListener, OnClickListener, CvCameraViewListener2, NewReadCallback{
 

@@ -1,11 +1,11 @@
-package com.example.testerapplication;
+package com.example.enhancedereader;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-
-import com.example.testerapplication.datastructures.UserProfile;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -22,15 +22,21 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
-public class LoginFragment extends Fragment implements OnItemClickListener, OnClickListener {
+import com.example.enhancedereader.datastructures.UserProfile;
+import com.example.testerapplication.R;
+
+public class LoginFragment extends Fragment implements OnItemClickListener, OnItemLongClickListener, OnClickListener {
 
 	private Map<String, UserProfile> profiles;
-	private String[] userNames;
+	private ArrayList<String> usernames;
+	private ReaderActivity ra; 
+	private ArrayAdapter<String> adapter;
 	
 	
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -44,33 +50,38 @@ public class LoginFragment extends Fragment implements OnItemClickListener, OnCl
 	@Override
 	public void onResume() {
 		super.onResume();
-		ReaderActivity ra = getReaderActivity();
+		ra = getReaderActivity();
 		ListView userList = (ListView) ra.findViewById(R.id.user_list);
 		profiles = ra.getProfiles();
-		userNames = new String[profiles.size()];
-		Set<String> keySet = profiles.keySet();
-		Iterator<String> iter = keySet.iterator();
-		int i = 0;
-		while (iter.hasNext()) {
-			userNames[i] = iter.next();
-			i++;
-		}
-		Arrays.sort(userNames);
-		ArrayAdapter<String> adapter = 	new ArrayAdapter<String>(ra, R.layout.user_list_item, userNames);
+		usernames = new ArrayList<String>(profiles.keySet());
+		Collections.sort(usernames);
+		adapter = 	new ArrayAdapter<String>(ra, R.layout.user_list_item, usernames);
 		userList.setAdapter(adapter);
         userList.setOnItemClickListener(this);
+        userList.setOnItemLongClickListener(this);
 	}
 
+	// opens a dialog to ask the user for the password for the selected profile
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position,
 			long id) {
-		UserProfile user = profiles.get(userNames[position]);
+		UserProfile user = profiles.get(usernames.get(position));
 		if (user != null) {
 			PasswordDialog passwordDialog = new PasswordDialog(user);
 			passwordDialog.show(getFragmentManager(), "PASSWORD_DIALOG");
 		}
 	}
 	
+	// deletes the user selected
+	@Override 
+	public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+		ra.removeProfile(profiles.get(usernames.get(position)));
+		usernames.remove(position);
+		adapter.notifyDataSetChanged();
+		return true;
+	}
+	
+	// selects the passed in UserProfile
 	private void selectUser(UserProfile user) {
 		final ReaderActivity ra = getReaderActivity();
 		if (user == null) {
@@ -96,6 +107,7 @@ public class LoginFragment extends Fragment implements OnItemClickListener, OnCl
 	}
 	
 
+	// inner class used to prompt the user for a password
 	private class PasswordDialog extends DialogFragment {
 		
 		private UserProfile user;

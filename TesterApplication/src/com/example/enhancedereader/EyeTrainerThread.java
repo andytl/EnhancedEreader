@@ -1,10 +1,10 @@
-package com.example.testerapplication;
+package com.example.enhancedereader;
 
 import android.app.Activity;
 
-import com.example.testerapplication.datastructures.CVTaskBuffer;
-import com.example.testerapplication.datastructures.MatPoint;
-import com.example.testerapplication.webcommunication.WebCommTrain;
+import com.example.enhancedereader.datastructures.CVTaskBuffer;
+import com.example.enhancedereader.datastructures.MatPoint;
+import com.example.enhancedereader.webcommunication.WebCommTrain;
 
 
 public class EyeTrainerThread extends Thread implements Runnable {

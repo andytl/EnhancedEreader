@@ -1,6 +1,6 @@
-package com.example.testerapplication;
+package com.example.enhancedereader;
 
-import com.example.testerapplication.datastructures.DoublePoint;
+import com.example.enhancedereader.datastructures.DoublePoint;
 
 public class CalibrationState {
 	private int curRow;
@@ -14,7 +14,7 @@ public class CalibrationState {
 	private static String rows = "ROWS";
 	private static String cols = "COLS";
 	private int position;
-	private static int FRAMES_PER_POSITION = 2;
+	private static int FRAMES_PER_POSITION = 1;
 	private int curFrames;
 	
 	public CalibrationState() {

@@ -1,8 +1,8 @@
-package com.example.testerapplication;
+package com.example.enhancedereader;
 
 import org.opencv.core.Mat;
 
-import com.example.testerapplication.datastructures.DoublePoint;
+import com.example.enhancedereader.datastructures.DoublePoint;
 
 public class NativeInterface {
 

@@ -1,4 +1,4 @@
-package com.example.testerapplication;
+package com.example.enhancedereader;
 
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
@@ -23,10 +23,11 @@ import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
-import com.example.testerapplication.datastructures.CVTaskBuffer;
-import com.example.testerapplication.datastructures.DoublePoint;
-import com.example.testerapplication.datastructures.MatPoint;
-import com.example.testerapplication.display.CircleView;
+import com.example.enhancedereader.datastructures.CVTaskBuffer;
+import com.example.enhancedereader.datastructures.DoublePoint;
+import com.example.enhancedereader.datastructures.MatPoint;
+import com.example.enhancedereader.display.CircleView;
+import com.example.testerapplication.R;
 
 public class CalibrateFragment extends Fragment implements CvCameraViewListener2, OnTouchListener{
 
@@ -244,8 +245,8 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 	        
 	        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 	        builder.setTitle("Calibration Phase")
-	        	   .setMessage("Follow the red dot with your eyes")
-	               .setPositiveButton("Start Callibration", new DialogInterface.OnClickListener() {
+	        	   .setMessage("Follow the blue dot with your eyes")
+	               .setPositiveButton("Start Calibration", new DialogInterface.OnClickListener() {
 	                   public void onClick(DialogInterface dialog, int id) {
 	                	   startCalibration();
 	                   }

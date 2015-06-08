@@ -1,4 +1,4 @@
-package com.example.testerapplication;
+package com.example.enhancedereader;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -26,8 +26,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
-import com.example.testerapplication.datastructures.UserProfile;
-import com.example.testerapplication.webcommunication.WebCommNewUser;
+import com.example.enhancedereader.datastructures.UserProfile;
+import com.example.enhancedereader.webcommunication.WebCommNewUser;
+import com.example.testerapplication.R;
 
 
 public class ReaderActivity extends Activity {
@@ -138,6 +139,7 @@ public class ReaderActivity extends Activity {
 		setContentView(R.layout.activity_reader);
 		
         dbHelper = new DbHelper(this);
+        dbHelper.open();
 		if (savedInstanceState == null) {
 			currentUser = null;
 //			
@@ -281,7 +283,8 @@ public class ReaderActivity extends Activity {
 //	}
 	
 	public boolean removeProfile(UserProfile user) {
-		return false;
+		dbHelper.deleteUser(user);
+		return true;
 	}
 	
 	private boolean isTableExists(String tableName, SQLiteDatabase db) {
@@ -395,12 +398,12 @@ public class ReaderActivity extends Activity {
 		 return false;
 	 }
 	
-	public void updateFocusRate(double focusRate) {
-		TextView tv = (TextView) findViewById(R.id.display_focus_rate);
-		if (tv != null) {
-			tv.setText("Focus Rate: " + focusRate);
-		}
-	}
+//	public void updateFocusRate(double focusRate) {
+//		TextView tv = (TextView) findViewById(R.id.display_focus_rate);
+//		if (tv != null) {
+//			tv.setText("Focus Rate: " + focusRate);
+//		}
+//	}
 	
 	public boolean show() {
 		return show;

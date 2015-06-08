@@ -1,4 +1,4 @@
-package com.example.testerapplication.webcommunication;
+package com.example.enhancedereader.webcommunication;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,8 +10,8 @@ import java.net.HttpURLConnection;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.example.testerapplication.ReaderActivity;
-import com.example.testerapplication.datastructures.UserProfile;
+import com.example.enhancedereader.ReaderActivity;
+import com.example.enhancedereader.datastructures.UserProfile;
 
 public class WebCommTrain extends WebCommBase implements Runnable {
 

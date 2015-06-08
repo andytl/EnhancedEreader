@@ -1,4 +1,4 @@
-package com.example.testerapplication.webcommunication;
+package com.example.enhancedereader.webcommunication;
 
 import java.io.IOException;
 import java.io.OutputStream;

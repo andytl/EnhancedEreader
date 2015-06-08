@@ -1,4 +1,4 @@
-package com.example.testerapplication.webcommunication;
+package com.example.enhancedereader.webcommunication;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -6,10 +6,10 @@ import java.net.HttpURLConnection;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.example.testerapplication.CalibrateFragment;
+import com.example.enhancedereader.CalibrateFragment;
+import com.example.enhancedereader.ReaderActivity;
+import com.example.enhancedereader.datastructures.UserProfile;
 import com.example.testerapplication.R;
-import com.example.testerapplication.ReaderActivity;
-import com.example.testerapplication.datastructures.UserProfile;
 
 public class WebCommNewUser extends WebCommBase implements Runnable {
 

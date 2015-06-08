@@ -1,4 +1,4 @@
-package com.example.testerapplication.webcommunication;
+package com.example.enhancedereader.webcommunication;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -6,7 +6,7 @@ import java.net.HttpURLConnection;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.example.testerapplication.datastructures.FocusData;
+import com.example.enhancedereader.datastructures.FocusData;
 
 public class WebCommSendData extends WebCommBase implements Runnable {
 
