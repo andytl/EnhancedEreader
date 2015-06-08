@@ -7,9 +7,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.example.enhancedereader.CalibrateFragment;
+import com.example.enhancedereader.R;
 import com.example.enhancedereader.ReaderActivity;
 import com.example.enhancedereader.datastructures.UserProfile;
-import com.example.testerapplication.R;
 
 public class WebCommNewUser extends WebCommBase implements Runnable {
 
@@ -21,6 +21,7 @@ public class WebCommNewUser extends WebCommBase implements Runnable {
 		this.ra = ra;
 	}
 	
+	// sends a request to create a new user to the server
 	@Override
 	public void run() {
 		String url = "http://attu4.cs.washington.edu:3777/api/user";

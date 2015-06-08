@@ -7,6 +7,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.example.enhancedereader.datastructures.UserProfile;
 
+// used to manage the internal database
+
 public class DbHelper extends SQLiteOpenHelper{
 	public static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "EnhancedEreader.db";
@@ -42,6 +44,7 @@ public class DbHelper extends SQLiteOpenHelper{
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {		
 	}
     
+	// adds the user/password pair to the local database
 	public boolean addUser(UserProfile user) {
 		boolean result = true;
 		ContentValues values = new ContentValues();
@@ -62,6 +65,7 @@ public class DbHelper extends SQLiteOpenHelper{
 		return result;
 	}
 	
+	// deletes the user from the local database
 	public void deleteUser(UserProfile user) {
 		db.beginTransaction();
     	try {

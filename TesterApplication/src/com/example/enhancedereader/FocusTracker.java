@@ -5,7 +5,6 @@ import android.view.ViewGroup;
 
 import com.example.enhancedereader.datastructures.FocusData;
 import com.example.enhancedereader.display.CircleView;
-import com.example.testerapplication.R;
 
 public class FocusTracker {
 
@@ -92,7 +91,7 @@ public class FocusTracker {
 		}
 		ViewGroup circleOverlay = (ViewGroup)rootView.findViewById(R.id.web_circle_overlay);
 		clearCircles(circleOverlay);
-		if (ra.show()) {		
+		if (ra.showCameraView()) {		
 			float Y = getYCoord(avgY, height);
 			drawCircle((float)width/2, (float)Y, 30, 0xFF11FFFF, circleOverlay);
 			drawCircle((float)curX, (float)curY, 5, 0xFFFFFF00, circleOverlay);
@@ -142,6 +141,7 @@ public class FocusTracker {
 	public void reset() {
 		totalTime = 0;
 		timeReading = 0;
+		tempTime = -1;
 		startTime = -1;
 		endTime  = -1;
 		curX = 0;

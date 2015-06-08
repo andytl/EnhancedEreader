@@ -27,7 +27,6 @@ import com.example.enhancedereader.datastructures.CVTaskBuffer;
 import com.example.enhancedereader.datastructures.DoublePoint;
 import com.example.enhancedereader.datastructures.MatPoint;
 import com.example.enhancedereader.display.CircleView;
-import com.example.testerapplication.R;
 
 public class CalibrateFragment extends Fragment implements CvCameraViewListener2, OnTouchListener{
 
@@ -37,7 +36,7 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
     public CameraBridgeViewBase   mOpenCvCameraView = null;
 	public boolean validFrame = false;
 	private ReaderActivity ra;
-    private CVTaskBuffer<MatPoint> tasks;
+    private CVTaskBuffer<MatPoint> tasks; // condition variable Task buffer
     private EyeTrainerThread trainerThread;
     private CalibrationState cState;
     private boolean visible = true;
@@ -62,6 +61,7 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.calibrate_fragment, container, false);
+        // initialize camera stuff
     	mOpenCvCameraView = (CameraBridgeViewBase) rootView.findViewById(R.id.web_camera_view);
 		mOpenCvCameraView.setCvCameraViewListener(this);
 		mOpenCvCameraView.setCameraIndex(1);
@@ -80,6 +80,7 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 		new StartCalibrationDialogFragment().show(getFragmentManager(), "start_callibartion");
 	}
 	
+	// set up the trainer thread
 	private void startCalibration() {
 		cState = new CalibrationState();
 		trainerThread = new EyeTrainerThread(tasks, cState, this, ra);
@@ -150,74 +151,48 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 	
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-		if (ReaderActivity.FLIP) {
-			mGray = inputFrame.gray();
-			Mat square = new Mat(mGray, getCropArea(mGray));
-			square = square.clone();
-			Mat tempT = square.t();
-			Mat squareT = square.t();
-			Core.flip(tempT,  squareT, -1);
-			
-			square.release();
-			tempT.release();
-			Imgproc.resize(squareT, mGray, mGray.size());
-			if (cState !=  null) {
-				if (!cState.initialized()) {
-					View rootView = getView();
-					cState.setDimensions(rootView.getWidth(), rootView.getHeight());
-				}
-				if (validFrame) {
-					validFrame = false;
-					DoublePoint dp = cState.getCurrentCoordinate();
-					View rootView = getView();
-					tasks.addTask(new MatPoint(squareT, interpolateX(dp.x, rootView), interpolateY(dp.y, rootView), cState.getPositionID()));
-				} else {
-					squareT.release();
-				}
+	
+		// get a square version of the grayscale original camera frame
+		mGray = inputFrame.gray();
+		Mat square = new Mat(mGray, getCropArea(mGray));
+		square = square.clone();
+		Mat tempT = square.t();
+		Mat squareT = square.t();
+		Core.flip(tempT,  squareT, -1);
+		square.release();
+		tempT.release();
+		Imgproc.resize(squareT, mGray, mGray.size());
+		
+		// if calibrating, add current frame to the task list
+		if (cState !=  null) {
+			if (!cState.initialized()) {
+				View rootView = getView();
+				cState.setDimensions(rootView.getWidth(), rootView.getHeight());
 			}
-			if (visible) {
-				return mGray;
+			if (validFrame) {
+				validFrame = false;
+				DoublePoint dp = cState.getCurrentCoordinate();
+				View rootView = getView();
+				tasks.addTask(new MatPoint(squareT, interpolateX(dp.x, rootView), interpolateY(dp.y, rootView), cState.getPositionID()));
 			} else {
-				if (mBlack == null) {
-					mBlack = Mat.zeros(mGray.size(), 0);
-				}
-				mGray.release();
-				return mBlack;
-			}	
-		} else {
-			mGray = inputFrame.gray();
-			Mat square = new Mat(mGray, getCropArea(mGray));
-			square = square.clone();
-			Core.flip(square, square, 0);
-			Core.flip(square.t(), square, 0);
-//			Core.flip(square,  square, -1);			
-			Imgproc.resize(square, mGray, mGray.size());
-			if (cState !=  null) {
-				if (!cState.initialized()) {
-					View rootView = getView();
-					cState.setDimensions(rootView.getWidth(), rootView.getHeight());
-				}
-				if (validFrame) {
-					validFrame = false;
-					DoublePoint dp = cState.getCurrentCoordinate();
-					View rootView = getView();
-					tasks.addTask(new MatPoint(square, interpolateX(dp.x, rootView), interpolateY(dp.y, rootView), cState.getPositionID()));
-				} else {
-					square.release();
-				}
-			}
-			if (visible) {
-				return mGray;
-			} else {
-				if (mBlack == null) {
-					mBlack = Mat.zeros(mGray.size(), 0);
-				}
-				mGray.release();
-				return mBlack;
+				squareT.release();
 			}
 		}
+		
+		// decide whether to display the image in the background
+		if (visible) {
+			return mGray;
+		} else {
+			if (mBlack == null) {
+				mBlack = Mat.zeros(mGray.size(), 0);
+			}
+			mGray.release();
+			return mBlack;
+		}	
+		
 	}
 	
+	// determine the square bounds of the image
 	private Rect getCropArea(Mat m) {
 		int width = m.cols();int height= m.rows();
 		if (width >  height) {
@@ -233,12 +208,14 @@ public class CalibrateFragment extends Fragment implements CvCameraViewListener2
 		visible = !visible;
 	}
 
+	//toggles whether to display the camera view in the background
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
 		toggleCameraView();
 		return false;
 	}
 	
+	// inner class for a dialog that prompts the user to start calibrating
 	private class StartCalibrationDialogFragment extends DialogFragment {
 		@Override
 	    public Dialog onCreateDialog(Bundle savedInstanceState) {

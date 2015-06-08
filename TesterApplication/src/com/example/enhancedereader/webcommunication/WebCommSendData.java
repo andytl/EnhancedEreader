@@ -20,6 +20,7 @@ public class WebCommSendData extends WebCommBase implements Runnable {
 		this.password = password;
 	}
 	
+	// sends an entry of reading statistics to the server
 	@Override
 	public void run() {
 		String url = "http://attu4.cs.washington.edu:3777/api/entry";
