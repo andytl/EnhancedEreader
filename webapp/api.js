@@ -87,6 +87,18 @@ router.get('/entry/:username', function(req, res, next) {
   );
 });
 
+router.get('/entries/cumulative', function(req, res, next) {
+  database.getCumulativeTimes(
+    dataResponse.bind(null, res, next, function (data) {
+      var res = {};
+      data.forEach(function (d) {
+        res[d.username] = d.cumulative;
+      });
+      return res;
+    })
+  );
+});
+
 router.post('/entry', function(req, res, next) {
   var params = req.body;
   if (lib.checkMissingParams(params,

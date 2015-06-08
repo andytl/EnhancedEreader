@@ -3,7 +3,7 @@
 window.Shared = {
 /////////////////
 
-timeFormatter: d3.time.format('%x'),
+timeFormatter: function (t) { return d3.time.format('%x')(new Date(t)); },
 
 floatFormatter: d3.format('.02f'),
 
@@ -24,13 +24,11 @@ plotData: function plotData(data, domstring, xAxisLabel, yAxisLabel, xTickFormat
       .showXAxis(true);               //Show the x-axis
 
     chart.xAxis     //Chart x-axis settings
-      .axisLabel('Timestamp (ms, epoch)')
-      .tickFormat(function(d) {
-         return d3.time.format('%x')(new Date(d));
-      });
+      .axisLabel(xAxisLabel)
+      .tickFormat(xTickFormatFcn);
     chart.yAxis     //Chart y-axis settings
-      .axisLabel('Focusrate (?)')
-      .tickFormat(d3.format('.02f'));
+      .axisLabel(yAxisLabel)
+      .tickFormat(yTickFormatFcn);
 
     /* Done setting the chart up? Time to render it!*/
 
@@ -40,6 +38,31 @@ plotData: function plotData(data, domstring, xAxisLabel, yAxisLabel, xTickFormat
 
     //Update the chart when window resizes.
     nv.utils.windowResize(function() { chart.update(); });
+    return chart;
+  });
+},
+
+chartData: function (data, domstring, yLabel, yTickFormatFcn) {
+  nv.addGraph(function() {
+    var chart = nv.models.discreteBarChart()
+        .x(function(d) { return d.label })    //Specify the data accessors.
+        .y(function(d) { return d.value })
+        .staggerLabels(true)    //Too many bars and not enough room? Try staggering labels.
+        .tooltips(false)        //Don't show tooltips
+        .showValues(true)       //...instead, show the bar value right on top of each bar.
+      //.transitionDuration(350)
+        ;
+
+    chart.yAxis
+      .axisLabel(yLabel)
+      .tickFormat(yTickFormatFcn);
+
+    d3.select(domstring)
+        .datum(data)
+        .call(chart);
+
+    nv.utils.windowResize(chart.update);
+
     return chart;
   });
 },
@@ -55,31 +78,26 @@ getSeries: function (key, entries) {
 };
 
 window.onload = function() {
-  console.log('index.js loaded');
   if ($('#visualization_all').length) {
     loadAll();
+    loadAllFr();
   }
 };
 /*
-function loadUsers() {
-  $.get('api/users')
+function loadAllFr() {
+  $.get('api/entry')
     .done(function(data) {
-      $('#userlist').html('').append($('<select>').addClass('form-control')
-          .append(data.map(function(d) {
-            return $('<option>').html(d).val(d);
-          })).on('change', loadUser));
-    })
-    .fail(function(err) {
-      console.log(err);
-    });
-}
-
-function loadUser() {
-  var username = $(this).val();
-  $.get('api/entry/' + username)
-    .done(function(data) {
-      $('#visualization svg').empty();
-      plotData([Shared.getSeries(data.username, data.entries)], '#visualization svg');
+      var values = [];
+      Object.keys(data).forEach(function (user) {
+        values.push({
+          label: user,
+          value: data[user] / 3600000
+        });
+      });
+      Shared.chartData([Shared.getSeries('Cumulative Time Reading', values)],
+          '#visualization_all svg', 'Time (Hr)',
+          Shared.floatFormatter
+      );
     })
     .fail(function(err) {
       console.log(err);
@@ -88,14 +106,19 @@ function loadUser() {
 */
 
 function loadAll() {
-  $.get('api/entry')
+  $.get('api/entries/cumulative')
     .done(function(data) {
-      var series = [];
+      var values = [];
       Object.keys(data).forEach(function (user) {
-        series.push(Shared.getSeries(user, data[user].map(getPair)));
+        values.push({
+          label: user,
+          value: data[user] / 3600000
+        });
       });
-      Shared.plotData(series, '#visualization_all svg',
-          'Date', 'Focusrate', Shared.timeFormatter, Shared.floatFormatter);
+      Shared.chartData([Shared.getSeries('Cumulative Time Reading', values)],
+          '#visualization_all svg', 'Time (Hr)',
+          Shared.floatFormatter
+      );
     })
     .fail(function(err) {
       console.log(err);

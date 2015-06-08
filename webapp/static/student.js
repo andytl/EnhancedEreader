@@ -53,12 +53,15 @@ function getFieldMapper(fieldName) {
 
 function plotGraphs(all) {
   Shared.plotData(
-      [
-        Shared.getSeries('Focusrate', all.focusrate),
-        Shared.getSeries('Timeread', all.timereading)
-      ],
+      [Shared.getSeries('Focusrate', all.focusrate)],
       '#chart-focusrate svg', 'Date', 'Focusrate',
       Shared.timeFormatter, Shared.floatFormatter
+  );
+  Shared.plotData(
+      [Shared.getSeries('Timeread', all.timereading)],
+      '#chart-timeread svg', 'Date', 'Time Reading (Hr)',
+      Shared.timeFormatter,
+      function (t) { return Shared.floatFormatter(t / 3600000); }
   );
   Shared.plotData(
       [Shared.getSeries('DartingRate', all.dartingrate)],

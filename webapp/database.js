@@ -74,6 +74,12 @@ function getAllEntries(callback) {
       resultCallback.bind(null, callback));
 }
 
+function getCumulativeTimes(callback) {
+  db.all('SELECT username, SUM(totaltime) AS cumulative FROM entry GROUP BY username',
+      resultCallback.bind(null, callback));
+}
+
+
 function addEntries(entries, callback) {
   var query = squel
     .insert()
@@ -109,6 +115,7 @@ module.exports = {
   getEntries: getEntries,
   getUsers: getUsers,
   getAllEntries: getAllEntries,
-  addEntries: addEntries
+  addEntries: addEntries,
+  getCumulativeTimes: getCumulativeTimes
 };
 

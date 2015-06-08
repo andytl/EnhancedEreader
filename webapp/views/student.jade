@@ -16,17 +16,24 @@ html
               label(for='student-username') Student Username
               input.form-control#student-username(type='text', placeholder='Enter Username')
       div.row
-        div.col-md-12
+        div.col-md-6
           div.panel.panel-default
             div.panel-heading
-              h3.panel-title Focusrate / Time
+              h3.panel-title Focusrate
             div.panel-body
               div.chart#chart-focusrate
+                svg
+        div.col-md-6
+          div.panel.panel-default
+            div.panel-heading
+              h3.panel-title Time Reading
+            div.panel-body
+              div.chart#chart-timeread
                 svg
         div.col-md-12
           div.panel.panel-default
             div.panel-heading
-              h3.panel-title dartingrate
+              h3.panel-title Darting Rate
             div.panel-body
               div.chart#chart-dartrate
                 svg
