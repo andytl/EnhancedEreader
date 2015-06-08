@@ -1,7 +1,10 @@
-package com.example.testerapplication;
+package com.example.enhancedereader;
 
 import android.app.Activity;
-import android.app.Dialog;
+
+import com.example.enhancedereader.datastructures.CVTaskBuffer;
+import com.example.enhancedereader.datastructures.MatPoint;
+import com.example.enhancedereader.webcommunication.WebCommTrain;
 
 
 public class EyeTrainerThread extends Thread implements Runnable {
@@ -60,14 +63,21 @@ public class EyeTrainerThread extends Thread implements Runnable {
 				ra.displayDialog();
 			}
 		});
-		NativeInterface.trainNeuralNetwork(ra.createLocalFile(ra.getUserName()));
-		ra.runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				ra.enterWebMode();
-				ra.cancelDialog();
-			}
-		});
+		NativeInterface.saveTrainData(ra.createLocalFile(ra.getUserName() + "train"));
+		if (ReaderActivity.OFFLOAD){ 
+			WebCommTrain wct = new WebCommTrain(ra.getUserProfile(), ra.createLocalFile(ra.getUserName() + "train"), ra.createLocalFile(ra.getUserName()), ra);
+			wct.start();
+		} else {
+			NativeInterface.trainNeuralNetwork(ra.createLocalFile(ra.getUserName()));
+			ra.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					ra.enterWebMode();
+					ra.cancelDialog();
+				}
+			});
+		}
+
 	}
 	
 	

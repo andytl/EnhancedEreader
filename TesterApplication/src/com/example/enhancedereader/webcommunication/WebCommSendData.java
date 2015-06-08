@@ -1,11 +1,12 @@
-package com.example.testerapplication;
+package com.example.enhancedereader.webcommunication;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.example.enhancedereader.datastructures.FocusData;
 
 public class WebCommSendData extends WebCommBase implements Runnable {
 
@@ -27,12 +28,6 @@ public class WebCommSendData extends WebCommBase implements Runnable {
 			try {
 				int response = conn.getResponseCode();
 				System.out.println(response);
-				if (response == 200) {
-	//				OutputStream request = conn.getOutputStream();
-	//				request.write(getJSON().toString().getBytes());
-	//				request.flush();
-	//				request.close();
-				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -50,6 +45,7 @@ public class WebCommSendData extends WebCommBase implements Runnable {
 			result.put("totaltime", (int)fd.totalTime);
 			result.put("timereading", (int)fd.timeReading);
 			result.put("timestamp", fd.date);
+			result.put("dartingrate", fd.dartingRate);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}

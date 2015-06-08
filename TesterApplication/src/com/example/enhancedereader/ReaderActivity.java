@@ -1,4 +1,4 @@
-package com.example.testerapplication;
+package com.example.enhancedereader;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -14,7 +14,6 @@ import org.opencv.android.OpenCVLoader;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -22,18 +21,27 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
+
+import com.example.enhancedereader.datastructures.UserProfile;
+import com.example.enhancedereader.webcommunication.WebCommNewUser;
+import com.example.testerapplication.R;
 
 
 public class ReaderActivity extends Activity {
 
 	public static final boolean VERBOSE = false; 
+	public static final boolean OFFLOAD = true;
+	public static final boolean FLIP = true;
 
 	public static final String WEB_MODE = "WEB_MODE";
 	public static final String LOGIN_MODE = "LOGIN_MODE";
 	public static final String CALIBRATE_MODE = "CALIBRATE_MODE";
+	
+	private boolean show = true;
 	
 	
 	private DbHelper dbHelper;
@@ -131,6 +139,7 @@ public class ReaderActivity extends Activity {
 		setContentView(R.layout.activity_reader);
 		
         dbHelper = new DbHelper(this);
+        dbHelper.open();
 		if (savedInstanceState == null) {
 			currentUser = null;
 //			
@@ -192,6 +201,7 @@ public class ReaderActivity extends Activity {
 		currentUser = user;
 		if (user != null) {
 			NativeInterface.loadUserProfile(createLocalFile(user.getUserName()));
+			cancelDialog();
 			getFragmentManager().beginTransaction()
 				.replace(R.id.container, new WebFragment(), WEB_MODE)
 				.commit();
@@ -203,10 +213,10 @@ public class ReaderActivity extends Activity {
 		currentUser = user;
 		boolean result = dbHelper.addUser(currentUser);
 		if (result) {
-			new WebCommNewUser(user).start();
-			getFragmentManager().beginTransaction()
-				.replace(R.id.container,  new CalibrateFragment(), CALIBRATE_MODE)
-				.commit();
+			new WebCommNewUser(user, this).start();
+//			getFragmentManager().beginTransaction()
+//				.replace(R.id.container,  new CalibrateFragment(), CALIBRATE_MODE)
+//				.commit();
 		}
 	}
 	
@@ -273,7 +283,8 @@ public class ReaderActivity extends Activity {
 //	}
 	
 	public boolean removeProfile(UserProfile user) {
-		return false;
+		dbHelper.deleteUser(user);
+		return true;
 	}
 	
 	private boolean isTableExists(String tableName, SQLiteDatabase db) {
@@ -328,6 +339,10 @@ public class ReaderActivity extends Activity {
 		}
 	}
 	
+	public UserProfile getUserProfile() {
+		return currentUser;
+	}
+	
 	public String createLocalFile(String userName) {
 		return getFilesDir() + "/" + userName + ".fann";
 	}
@@ -342,7 +357,9 @@ public class ReaderActivity extends Activity {
 	}
 	
 	public void cancelDialog() {
-		dialog.cancel();
+		if (dialog.isShowing()) {
+			dialog.cancel();
+		}
 	}
 	
 	public void displayDialog() {
@@ -365,11 +382,31 @@ public class ReaderActivity extends Activity {
 		}
 	}	
 	
-	public void updateFocusRate(double focusRate) {
-		TextView tv = (TextView) findViewById(R.id.display_focus_rate);
-		if (tv != null) {
-			tv.setText("Focus Rate: " + focusRate);
-		}
+	 @Override
+	 public boolean onKeyDown(int keyCode, KeyEvent event) {
+		 WebFragment wf = ((WebFragment)getFragmentManager().findFragmentByTag(WEB_MODE));
+		 if (wf.isVisible()) {
+		 	 if ((keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)){
+		 		 show = false;
+		 		 wf.showCameraView(false);
+		     } else if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+		    	 show = true;
+		    	 wf.showCameraView(true);
+		     }
+		     return true;
+		 }
+		 return false;
+	 }
+	
+//	public void updateFocusRate(double focusRate) {
+//		TextView tv = (TextView) findViewById(R.id.display_focus_rate);
+//		if (tv != null) {
+//			tv.setText("Focus Rate: " + focusRate);
+//		}
+//	}
+	
+	public boolean show() {
+		return show;
 	}
 	
 }

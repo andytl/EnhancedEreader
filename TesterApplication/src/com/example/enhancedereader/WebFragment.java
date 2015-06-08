@@ -1,9 +1,4 @@
-package com.example.testerapplication;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+package com.example.enhancedereader;
 
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
@@ -29,13 +24,20 @@ import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.example.enhancedereader.datastructures.CVTaskBuffer;
+import com.example.enhancedereader.datastructures.FocusData;
+import com.example.enhancedereader.datastructures.MatTime;
+import com.example.enhancedereader.webcommunication.WebCommSendData;
+import com.example.testerapplication.R;
+
 public class WebFragment extends Fragment implements OnTouchListener, OnClickListener, CvCameraViewListener2, NewReadCallback{
 
 //	private ReadingMonitor mMonitor;
 	private FocusTracker mMonitor;
 	private Mat                     mRgba;
 	private Mat                     mGray;
-//	private Mat 					mSquareT;
+	private Mat mBlack = null;
+	
     public CameraBridgeViewBase   mOpenCvCameraView = null;
     
     public static int FRAME_RATE = 0;
@@ -54,7 +56,7 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
     	validFrame = false;
     	frameCount = 0;
     }
-	
+	 
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
@@ -76,6 +78,7 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 		return rootView;
 	}
 	
+	
 	private void registerOnClick(int id, View rootView) {
 		Button button = (Button) rootView.findViewById(id);
 		button.setOnClickListener(this);
@@ -90,8 +93,8 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 		registerOnClick(R.id.save_data, rootView);
 		WebView wv = (WebView) rootView.findViewById(R.id.web_view);
 		wv.setWebViewClient(new WebViewClient());
-//		wv.loadUrl("https://www.gutenberg.org/files/31547/31547-h/31547-h.htm");
-		wv.loadUrl("http://www.madrona.com");
+		wv.loadUrl("https://www.gutenberg.org/files/31547/31547-h/31547-h.htm");
+//		wv.loadUrl("http://www.madrona.com");
 		enableCameraView();
 		trackerThread = new EyeTrackerThread(ra, this, tasks);
 		trackerThread.start();
@@ -157,7 +160,15 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 		if (FRAME_RATE != 0) {
 			frameCount %= FRAME_RATE;
 		}
-		return mGray;		
+		if (ra.show()) {
+			return mGray;
+		} else {
+			if (mBlack == null) {
+				mBlack = Mat.zeros(mGray.size(), 0);
+			}
+			mGray.release();
+			return mBlack;
+		}
 	}
 	
 	private Rect getCropArea(Mat m) {
@@ -208,6 +219,14 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 		}
 	}
 	
+	public void showCameraView(boolean show) {
+		View webView = getView().findViewById(R.id.web_view);
+		if (show) {
+			webView.setAlpha((float)0.7);
+		} else {
+			webView.setAlpha(1);
+		}
+	}
 	
 	private void hideKeyboard(Activity activity) {
 		InputMethodManager imm = (InputMethodManager)activity.getSystemService(

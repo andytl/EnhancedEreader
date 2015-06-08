@@ -1,6 +1,10 @@
-package com.example.testerapplication;
+package com.example.enhancedereader;
 
 import org.opencv.core.Mat;
+
+import com.example.enhancedereader.datastructures.CVTaskBuffer;
+import com.example.enhancedereader.datastructures.DoublePoint;
+import com.example.enhancedereader.datastructures.MatTime;
 
 public class EyeTrackerThread extends Thread implements Runnable {
 

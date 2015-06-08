@@ -1,14 +1,14 @@
-package com.example.testerapplication;
+package com.example.enhancedereader;
 
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.RelativeLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
-import com.example.testerapplication.display.CircleView;
+import com.example.enhancedereader.datastructures.DoublePoint;
+import com.example.enhancedereader.display.CircleView;
 
 public class ReadingMonitor {
 

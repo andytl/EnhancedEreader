@@ -1,81 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout 
+<RelativeLayout 
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
-    <RelativeLayout
-     	android:layout_width="wrap_content"
-     	android:layout_height="wrap_content">
-    	<TextView 
-	    	android:id="@+id/display_focus_rate"
-	    	android:layout_width="match_parent"
-	    	android:layout_height="wrap_content"
-	    	android:layout_alignParentLeft="true"/>
-    	<Button
-    	    android:id="@+id/save_data"
-    	    android:layout_width="wrap_content"
-    	    android:layout_height="wrap_content"
-    	    android:layout_alignParentRight="true"
-    	    android:text="Save Focus Data"/>
-     	
-    </RelativeLayout>
-	 <LinearLayout 
-	    	android:layout_width="match_parent"	
-	    	android:layout_height="wrap_content"
-	    	android:orientation="horizontal">
-		    <EditText 
-		        android:id="@+id/url"
-		        android:inputType="textUri"
-		        android:layout_width="0dp"
-		        android:layout_weight="1"
-		        android:layout_height="wrap_content"
-		        android:hint="@string/enter_url"/>
-		    <Button
-		        android:id="@+id/go"
-		        android:layout_width="wrap_content"
-		        android:layout_height="wrap_content"
-		        android:text="@string/go"/>
-	    </LinearLayout>
-    
-	<RelativeLayout 
+    android:orientation="vertical" >
+	    
+     <org.opencv.android.JavaCameraView
+       android:layout_width="fill_parent"
+       android:layout_height="fill_parent"
+       android:id="@+id/web_camera_view" />
+	<LinearLayout 
 	    android:layout_width="match_parent"
 	    android:layout_height="match_parent"
-	    android:orientation="vertical" >
-	    
-	      <org.opencv.android.JavaCameraView
-	        android:layout_width="fill_parent"
-	        android:layout_height="fill_parent"
-	        android:id="@+id/web_camera_view" />
-	    
-		<WebView
-			android:layout_width="match_parent"
-			android:layout_height="match_parent"
-			android:alpha=".7"
-		    android:id="@+id/web_view">
-		    
-		</WebView>
-	    
-		
-		
-		<TableLayout
-	        android:id="@+id/web_color_overlay"
-	        android:orientation="vertical"
-	        android:layout_width="match_parent"
-			android:layout_height="match_parent"/>
-	    
-	    <TableLayout
-	        android:id="@+id/web_blur_overlay"
-	        android:orientation="vertical"
-	        android:layout_width="match_parent"
-	        android:layout_height="match_parent"/>
-	    
+	    android:orientation="vertical">
 	    <RelativeLayout
-	        android:id="@+id/web_circle_overlay"
-	        android:orientation = "vertical"
-	        android:layout_width="match_parent"
-	        android:layout_height="match_parent">
+	     	android:layout_width="wrap_content"
+	     	android:layout_height="wrap_content">
+	    	<Button
+	    	    android:id="@+id/save_data"
+	    	    android:layout_width="match_parent"
+	    	    android:layout_height="wrap_content"
+	    	    android:text="Log Reading Data"/>
+	     	
 	    </RelativeLayout>
-		
-	</RelativeLayout>
-</LinearLayout>
+		 <LinearLayout 
+		    	android:layout_width="match_parent"	
+		    	android:layout_height="wrap_content"
+		    	android:orientation="horizontal">
+			    <EditText 
+			        android:id="@+id/url"
+			        android:inputType="textUri"
+			        android:layout_width="0dp"
+			        android:layout_weight="1"
+			        android:layout_height="wrap_content"
+			        android:hint="@string/enter_url"/>
+			    <Button
+			        android:id="@+id/go"
+			        android:layout_width="wrap_content"
+			        android:layout_height="wrap_content"
+			        android:text="@string/go"/>
+		    </LinearLayout>
+	    
+		    
+			<WebView
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:alpha=".7"
+			    android:id="@+id/web_view">
+			    
+			</WebView>
+		    	
+			
+	</LinearLayout>
+	
+
+	<TableLayout
+		        android:id="@+id/web_color_overlay"
+		        android:orientation="vertical"
+		        android:layout_width="match_parent"
+				android:layout_height="match_parent"/>
+		    
+		    <TableLayout
+		        android:id="@+id/web_blur_overlay"
+		        android:orientation="vertical"
+		        android:layout_width="match_parent"
+		        android:layout_height="match_parent"/>
+		    
+		    <RelativeLayout
+		        android:id="@+id/web_circle_overlay"
+		        android:orientation = "vertical"
+		        android:layout_width="match_parent"
+		        android:layout_height="match_parent">
+		    </RelativeLayout>	
+</RelativeLayout>
+

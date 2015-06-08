@@ -1,4 +1,4 @@
-package com.example.testerapplication.display;
+package com.example.enhancedereader.display;
 
 import android.content.Context;
 import android.graphics.Canvas;
