@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.*;
 
+// condition variable based task buffer
 public class CVTaskBuffer<E> {
 	private Queue<E> tasks;
 	private Lock lock;
@@ -24,6 +25,8 @@ public class CVTaskBuffer<E> {
 	public int getSize() {
 		return tasks.size();
 	}
+	
+	// tries to get a task from the task list, and waits until there is a task available
 	public E getTask() throws InterruptedException {
 		lock.lock();
 		try {
@@ -35,6 +38,8 @@ public class CVTaskBuffer<E> {
 			lock.unlock();
 		}
 	}
+	
+	// adds a task to the task list
 	public void addTask(E e) {
 		lock.lock();
 		try {

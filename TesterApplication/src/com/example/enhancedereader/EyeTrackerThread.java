@@ -19,6 +19,8 @@ public class EyeTrackerThread extends Thread implements Runnable {
 		this.tasks = tasks;
 	}
 	
+	// grabs a frame to process and returns the point in 
+	// the -1 to 1 coordinate system the frame matches to
 	@Override
 	public void run() {
 		Mat mat;
@@ -38,14 +40,14 @@ public class EyeTrackerThread extends Thread implements Runnable {
 			mat.release();
 			System.err.println(dp);
 			if (dp.x != 0 && dp.y != 0) {
-				// send result back to UI thread. Shahar will do this
-					ra.getHandler().post(new Runnable() {
-						@Override
-						public void run() {
-							nrc.newReadPosition(dp.x, dp.y);
-						}
-					});
-				}
+				// send result back to UI
+				ra.getHandler().post(new Runnable() {
+					@Override
+					public void run() {
+						nrc.newReadPosition(dp.x, dp.y);
+					}
+				});
+			}
 		}
 	}
 	

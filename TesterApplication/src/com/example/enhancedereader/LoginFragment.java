@@ -1,11 +1,8 @@
 package com.example.enhancedereader;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -29,7 +26,6 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 import com.example.enhancedereader.datastructures.UserProfile;
-import com.example.testerapplication.R;
 
 public class LoginFragment extends Fragment implements OnItemClickListener, OnItemLongClickListener, OnClickListener {
 
@@ -149,6 +145,7 @@ public class LoginFragment extends Fragment implements OnItemClickListener, OnIt
 	@Override
 	public void onClick(View v) {
 		if (v.getId() == R.id.new_user) {
+			// get the username and password entered and pass to activity to create new user
 			final ReaderActivity ra = getReaderActivity();
 			EditText usernameET = (EditText) ra.findViewById(R.id.new_user_name);
 			EditText passwordET = (EditText) ra.findViewById(R.id.new_password);

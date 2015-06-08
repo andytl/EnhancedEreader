@@ -24,11 +24,9 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.TextView;
 
 import com.example.enhancedereader.datastructures.UserProfile;
 import com.example.enhancedereader.webcommunication.WebCommNewUser;
-import com.example.testerapplication.R;
 
 
 public class ReaderActivity extends Activity {
@@ -53,71 +51,64 @@ public class ReaderActivity extends Activity {
 	public File mCascadeEyes;
 	
 	private Handler mHandler = null;
-	
-	/**********      camera stuff      ***************************/
-//	private Mat                    mRgba;
-//	private Mat                    mGray;
-//    public CameraBridgeViewBase   mOpenCvCameraView = null;
     public boolean connected = false;
-    /***********************************************************/
 
     
     
     /* ************* OpenCv Setup ***************/
-    
 	private BaseLoaderCallback	mLoaderCallback = new BaseLoaderCallback(this) {
-			@Override
-			public void onManagerConnected(int status) {
-					switch (status) {
-							case LoaderCallbackInterface.SUCCESS:
-							{
-								Log.i("TesterApplication", "OpenCV loaded successfully");
-								System.loadLibrary("TesterApplication"); 
-								try {
-									File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
-			                        mCascadeFace = new File(cascadeDir, "local_eyes.xml");
-			                        mCascadeEyes = new File(cascadeDir, "local_eyes");
-									
-									InputStream is = getResources().openRawResource(R.raw.haarcascade_frontalface_alt2);
-			                    
-			                        FileOutputStream os = new FileOutputStream(mCascadeFace);
+		@Override
+		public void onManagerConnected(int status) {
+			switch (status) {
+				case LoaderCallbackInterface.SUCCESS:
+				{
+					Log.i("TesterApplication", "OpenCV loaded successfully");
+					System.loadLibrary("EnhancedEReader"); 
+					try {
+						File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
+                        mCascadeFace = new File(cascadeDir, "local_eyes.xml");
+                        mCascadeEyes = new File(cascadeDir, "local_eyes");
+						
+						InputStream is = getResources().openRawResource(R.raw.haarcascade_frontalface_alt2);
+                    
+                        FileOutputStream os = new FileOutputStream(mCascadeFace);
 
-			                        byte[] buffer = new byte[4096];
-			                        int bytesRead;
-			                        while ((bytesRead = is.read(buffer)) != -1) {
-			                            os.write(buffer, 0, bytesRead);
-			                        }
-			                        is.close();
-			                        os.close();
-			                        
-			                        is = getResources().openRawResource(R.raw.haarcascade_mcs_lefteye);
-			                        os = new FileOutputStream(mCascadeEyes);
-			                        
-			                        while ((bytesRead = is.read(buffer)) != -1) {
-			                        	os.write(buffer, 0, bytesRead);
-			                        }
-			                        is.close();
-			                        os.close();
-			                        int result = NativeInterface.initializeTracker(mCascadeFace.getAbsolutePath(), mCascadeEyes.getAbsolutePath());
-			                		if (result == 0) {
-			                			System.err.println("Something failed to load!!!!");
-			                			return;
-			                		}
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								
-								// Load native library after(!) OpenCV initialization
-								System.out.println("JNI Loaded");
-								enableCameraView();
-								connected = true;
-							} break;
-							default:
-							{
-									super.onManagerConnected(status);
-							} break;
+                        byte[] buffer = new byte[4096];
+                        int bytesRead;
+                        while ((bytesRead = is.read(buffer)) != -1) {
+                            os.write(buffer, 0, bytesRead);
+                        }
+                        is.close();
+                        os.close();
+                        
+                        is = getResources().openRawResource(R.raw.haarcascade_mcs_lefteye);
+                        os = new FileOutputStream(mCascadeEyes);
+                        
+                        while ((bytesRead = is.read(buffer)) != -1) {
+                        	os.write(buffer, 0, bytesRead);
+                        }
+                        is.close();
+                        os.close();
+                        int result = NativeInterface.initializeTracker(mCascadeFace.getAbsolutePath(), mCascadeEyes.getAbsolutePath());
+                		if (result == 0) {
+                			System.err.println("Something failed to load!!!!");
+                			return;
+                		}
+					} catch (IOException e) {
+						e.printStackTrace();
 					}
+					
+					// Load native library after(!) OpenCV initialization
+					System.out.println("JNI Loaded");
+					enableCameraView();
+					connected = true;
+				} break;
+				default:
+				{
+						super.onManagerConnected(status);
+				} break;
 			}
+		}
 	};	
 	
 	public void enableCameraView() {
@@ -127,11 +118,10 @@ public class ReaderActivity extends Activity {
 			((CalibrateFragment)getFragmentManager().findFragmentByTag(CALIBRATE_MODE)).enableCameraView();
 		}
 	}
-	
 	/* ****************************************/
 	
-	/* ********** Android Lifecycle *****************/
 	
+	/* ********** Android Lifecycle *****************/
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -140,16 +130,7 @@ public class ReaderActivity extends Activity {
 		
         dbHelper = new DbHelper(this);
         dbHelper.open();
-		if (savedInstanceState == null) {
-			currentUser = null;
-//			
-//			getFragmentManager().beginTransaction()
-//				.add(R.id.container,  new WebFragment(), WEB_MODE)
-//				.commit();
-//			
-		} else {
-			// TODO: get information from savedInstanceState
-		}
+		currentUser = null;
 		mHandler = new Handler(Looper.getMainLooper());
 
 		if (currentUser == null) {
@@ -192,11 +173,12 @@ public class ReaderActivity extends Activity {
 	
 	
 	
-	/* ******  Callbacks ******************/
+	// dispatches the read position to the web fragment
 	public void newReadPosition(double x, double y) {
 		((WebFragment)getFragmentManager().findFragmentByTag(WEB_MODE)).newReadPosition(x, y);
 	}
 	
+	// loads up the profile for the selected user
 	public void selectUser(UserProfile user) {
 		currentUser = user;
 		if (user != null) {
@@ -208,6 +190,7 @@ public class ReaderActivity extends Activity {
 		}
 	}
 	
+	// adds the new user to the database and selects it as the current user. 
 	public void createNewUser(String userName, String password) {
 		UserProfile user = new UserProfile(userName, password);
 		currentUser = user;
@@ -224,12 +207,9 @@ public class ReaderActivity extends Activity {
 		getFragmentManager().beginTransaction()
 			.replace(R.id.container, new WebFragment(), WEB_MODE)
 			.commit();
-	}
-	/* ***********************************/
+	}	
 	
-	
-	/* ******** User Db ******************/
-
+	// returns a map of username to complete profile for all users in the local db
 	public Map<String, UserProfile> getProfiles() {
 		Map<String, UserProfile> result = new HashMap<String,UserProfile>();
 		SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -261,27 +241,7 @@ public class ReaderActivity extends Activity {
 		return result;
 	}
 	
-//	public boolean createProfile(UserProfile user) {
-//		boolean result = false;
-//		SQLiteDatabase db = dbHelper.getWritableDatabase();
-//		ContentValues values = new ContentValues();
-//		values.put(DbHelper.USER_ID, user.getUserName());
-//		db.beginTransaction();
-//		try {
-//			// need to change schema of local database to match new UUID format
-//			long newRowId = db.insert(DbHelper.USER_TABLE_NAME, null, values);
-//			if (newRowId == -1) {
-//				System.err.println("error entering user into database");
-//			} else {
-//				db.setTransactionSuccessful();
-//				result = true;
-//			}
-//		} finally {
-//			db.endTransaction();
-//		}
-//		return result;
-//	}
-	
+	// deletes the parameter profile from the local db
 	public boolean removeProfile(UserProfile user) {
 		dbHelper.deleteUser(user);
 		return true;
@@ -299,9 +259,7 @@ public class ReaderActivity extends Activity {
 	    }
 	    return result;
 	}
-	/* ***************************************/
 	
-	/* ******* Getters/Setters ****************/
 
 	private boolean isWebMode() {
 		return isFragmentMode(WEB_MODE);
@@ -343,12 +301,12 @@ public class ReaderActivity extends Activity {
 		return currentUser;
 	}
 	
-	public String createLocalFile(String userName) {
-		return getFilesDir() + "/" + userName + ".fann";
+	// returns the complete path for a new file in the local dir 
+	public String createLocalFile(String filename) {
+		return getFilesDir() + "/" + filename + ".fann";
 	}
 	
-	/* ****************************************/
-
+	// creates a loading dialog
 	public void createDialog(String text) {
 		dialog = new ProgressDialog(this);
 		dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
@@ -356,16 +314,20 @@ public class ReaderActivity extends Activity {
         dialog.setIndeterminate(true);
 	}
 	
+	// hides the loading dialog
 	public void cancelDialog() {
 		if (dialog.isShowing()) {
 			dialog.cancel();
 		}
 	}
 	
+	// shows the loading dialog
 	public void displayDialog() {
 		dialog.show();
 	}
 	
+	// handles pressing back. Goes back through web pages if it can. 
+	// Else, goes back to the login screen
 	@Override 
 	public void onBackPressed() {
 		FragmentManager fm = getFragmentManager();
@@ -382,6 +344,7 @@ public class ReaderActivity extends Activity {
 		}
 	}	
 	
+	// hides or displays the camera view in the background and the dot of where someone is looking
 	 @Override
 	 public boolean onKeyDown(int keyCode, KeyEvent event) {
 		 WebFragment wf = ((WebFragment)getFragmentManager().findFragmentByTag(WEB_MODE));
@@ -398,14 +361,8 @@ public class ReaderActivity extends Activity {
 		 return false;
 	 }
 	
-//	public void updateFocusRate(double focusRate) {
-//		TextView tv = (TextView) findViewById(R.id.display_focus_rate);
-//		if (tv != null) {
-//			tv.setText("Focus Rate: " + focusRate);
-//		}
-//	}
-	
-	public boolean show() {
+	// returns whether or not to show the camera data
+	public boolean showCameraView() {
 		return show;
 	}
 	

@@ -10,7 +10,6 @@ import com.example.enhancedereader.webcommunication.WebCommTrain;
 public class EyeTrainerThread extends Thread implements Runnable {
 
 	private CVTaskBuffer<MatPoint> tasks;
-	//TODO: technically a bug
 	private boolean finished;
 	private CalibrationState cState;
 	private CalibrateFragment cf;
@@ -28,6 +27,10 @@ public class EyeTrainerThread extends Thread implements Runnable {
 		finished = true;
 	};
 	
+	// grabs any pending frame/coordinate pairs and processes them. 
+	// On a successful process, advances the calibration state to the next point. 
+	// If the calibration is complete, offloads the training data 
+	// to the server to get a neural net back 
 	@Override
 	public void run() {
 		while (!finished || !tasks.isEmpty()) {

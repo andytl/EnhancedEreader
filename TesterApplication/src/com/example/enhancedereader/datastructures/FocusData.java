@@ -1,5 +1,6 @@
 package com.example.enhancedereader.datastructures;
 
+// Immutable object that stores data about the a reading session
 
 public class FocusData {
 	public static final String FOCUS_RATE = "FOCUS_RATE";

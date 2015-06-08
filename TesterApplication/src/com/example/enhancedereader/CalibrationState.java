@@ -13,6 +13,8 @@ public class CalibrationState {
 	private String phase;
 	private static String rows = "ROWS";
 	private static String cols = "COLS";
+	
+	// used by threads so the buffer doesn't get filled with frames looking at the same spot
 	private int position;
 	private static int FRAMES_PER_POSITION = 1;
 	private int curFrames;
@@ -45,7 +47,8 @@ public class CalibrationState {
 		return position;
 	}
 	
-	// called everytime there is a successful scan
+	// called every time there is a successful scan
+	// snakes through the rows left -> right, then right -> left
 	public void advancePosition(int position) {	
 		curFrames++;
  		if (this.position > position) {

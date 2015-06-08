@@ -13,10 +13,8 @@ import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebView;
@@ -28,9 +26,8 @@ import com.example.enhancedereader.datastructures.CVTaskBuffer;
 import com.example.enhancedereader.datastructures.FocusData;
 import com.example.enhancedereader.datastructures.MatTime;
 import com.example.enhancedereader.webcommunication.WebCommSendData;
-import com.example.testerapplication.R;
 
-public class WebFragment extends Fragment implements OnTouchListener, OnClickListener, CvCameraViewListener2, NewReadCallback{
+public class WebFragment extends Fragment implements OnClickListener, CvCameraViewListener2, NewReadCallback{
 
 //	private ReadingMonitor mMonitor;
 	private FocusTracker mMonitor;
@@ -60,9 +57,7 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
-		ra = (ReaderActivity) activity;
-//		mMonitor = new ReadingMonitor(R.id.web_view, R.id.web_circle_overlay, R.id.web_color_overlay, activity);
-		
+		ra = (ReaderActivity) activity;		
 	}
 	
 	@Override
@@ -71,7 +66,6 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 		super.onCreateView(inflater, container, savedInstanceState);
 		View rootView = inflater.inflate(R.layout.web_reader,
 				container, false);
-		rootView.findViewById(R.id.web_view).setOnTouchListener(this);
 		mOpenCvCameraView = (CameraBridgeViewBase) rootView.findViewById(R.id.web_camera_view);
 		mOpenCvCameraView.setCvCameraViewListener(this);
 		mOpenCvCameraView.setCameraIndex(1);
@@ -94,7 +88,6 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 		WebView wv = (WebView) rootView.findViewById(R.id.web_view);
 		wv.setWebViewClient(new WebViewClient());
 		wv.loadUrl("https://www.gutenberg.org/files/31547/31547-h/31547-h.htm");
-//		wv.loadUrl("http://www.madrona.com");
 		enableCameraView();
 		trackerThread = new EyeTrackerThread(ra, this, tasks);
 		trackerThread.start();
@@ -110,17 +103,7 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 	public void newReadPosition(double x, double y) {
 		mMonitor.newReadPosition(x, y);
 	}
-	
-	@Override
-	public boolean onTouch(View v, MotionEvent event) {
-//		int id = v.getId();
-//		int action = event.getAction();
-//		PointerCoords pc0 = new PointerCoords();
-//		event.getPointerCoords(0, pc0);
-//		mMonitor.newReadPosition(getView(), pc0.x, pc0.y);
-		validFrame = true;
-		return false;
-	}
+
 
 	@Override
 	public void onCameraViewStarted(int width, int height) {
@@ -138,6 +121,7 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 		}
 	}
 
+	// passes in the camera data to the eye tracking thread for processing
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		frameCount++;
@@ -160,7 +144,7 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 		if (FRAME_RATE != 0) {
 			frameCount %= FRAME_RATE;
 		}
-		if (ra.show()) {
+		if (ra.showCameraView()) {
 			return mGray;
 		} else {
 			if (mBlack == null) {
@@ -171,6 +155,7 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 		}
 	}
 	
+	// returns rect around square version of image
 	private Rect getCropArea(Mat m) {
 		int width = m.cols();int height = m.rows();
 		if(width > height) {
@@ -180,10 +165,6 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 			int start = (height - width) /2;
 			return new Rect(0, start, width, width);
 		}
-	}
-
-	private ReaderActivity getReaderActivity() {
-		return (ReaderActivity) getActivity();
 	}
 	
 	public boolean goBack() {
@@ -197,6 +178,7 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 	
 	@Override 
 	public void onClick(View v) {
+		// goes to new url
 		if (v.getId() == R.id.go) {
 			View rootView = getView();
 			EditText et = (EditText)rootView.findViewById(R.id.url);
@@ -206,14 +188,11 @@ public class WebFragment extends Fragment implements OnTouchListener, OnClickLis
 				WebView webView = (WebView)rootView.findViewById(R.id.web_view);
 				webView.loadUrl(url);
 			}
+		  // sends the reading data to the server
 		} else if (v.getId() == R.id.save_data){
-			FocusData fd = mMonitor.getData();
-			System.err.println(fd);
-			
-			//Send http POST to the website to save rate with current time
+			FocusData fd = mMonitor.getData();			
+			// Starts thread to send the data to the server
 			new WebCommSendData(fd, ra.getUserName(), ra.getPassword()).start();
-			
-			
 			//Reset the monitor
 			mMonitor.reset();
 		}

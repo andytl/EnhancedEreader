@@ -27,6 +27,7 @@ public class WebCommTrain extends WebCommBase implements Runnable {
 		this.ra = ra;
 	}
 	
+	// sends the training data to the server, and receives the neural net 
 	@Override
 	public void run() {
 		byte[] data = getSerializedData();
